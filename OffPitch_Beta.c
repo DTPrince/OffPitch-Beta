@@ -34,7 +34,7 @@ Timer_A_PWMConfig pwmConfig =
 const eUSCI_UART_Config uartConfig =
 {
         EUSCI_A_UART_CLOCKSOURCE_SMCLK,          // SMCLK Clock Source
-        78,                                     // BRDIV = 78
+        78,                                      // BRDIV = 78
         2,                                       // UCxBRF = 2
         0,                                       // UCxBRS = 0
         EUSCI_A_UART_NO_PARITY,                  // No Parity
@@ -51,7 +51,6 @@ int main(void) {
     /* Configuring P2.3 as output */
     MAP_GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN3);
 
-    //![Simple Timer_A Example]
     /* Setting MCLK to REFO at 128Khz for LF mode
      * Setting SMCLK to 64Khz */
     MAP_CS_setReferenceOscillatorFrequency(CS_REFO_128KHZ);
@@ -77,11 +76,10 @@ int main(void) {
     /* Configuring Timer_A to have a period of approximately 500ms and
      * an initial duty cycle of 10% of that (3200 ticks)  */
     MAP_Timer_A_generatePWM(TIMER_A0_BASE, &pwmConfig);
-    //![Simple Timer_A Example]
 
     /* Enable UART module */
     MAP_UART_enableModule(EUSCI_A0_BASE);
-    UART_enableModule(EUSCI_A0_BASE);
+    //UART_enableModule(EUSCI_A0_BASE);
 
     /* Enabling interrupts and starting the watchdog timer */
     MAP_UART_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);

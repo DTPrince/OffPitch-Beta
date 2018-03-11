@@ -6,6 +6,9 @@
  *	http://www.43oh.com/forum/viewtopic.php?f=10&t=1732
  * 
  * See http://www.samlewis.me for an example implementation.
+ *
+ * Git:
+ * https://github.com/samvrlewis/MSP432-printf
  */
 
 #include "stdarg.h"
