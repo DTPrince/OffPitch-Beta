@@ -70,4 +70,43 @@
 #define UART_COMMAND_PACKET_TYPECMD_SIZE        1
 #define UART_COMMAND_PACKET_LENGTH_SIZE         1
 
+/* Pin defines */
+//Serial
+#define COMMAND_SERIAL_PORT                     0
+
+// Digital I/O
+//Inputs
+#define CAP_SENSE_TABLE                         0
+#define CAP_SENSE_PLATE                         0
+#define HALL_SENSE_VSLOT_ONE                    0
+#define HALL_SENSE_VSLOT_TWO                    0
+#define HALL_SENSE_DOOR_HAB                     0
+#define HALL_SENSE_DOOR_SPC                     0
+#define HALL_SENSE_HINGE_HAB                    0
+#define HALL_SENSE_HINGE_SPC                    0
+
+//Outputs
+#define VSLOT_ONE_ENABLE                        0
+#define VSLOT_TWO_ENABLE                        0
+#define VSLOT_ONE_DIRECTION                     0
+#define VSLOT_TWO_DIRECTION                     0
+#define RELAY_DOOR_HAB                          0
+#define RELAY_DOOR_SPC                          0
+
+#define BOARD_LED_ONE                           0
+#define BOARD_LED_TWO                           0
+#define BOARD_LED_THREE                         0
+#define BOARD_LED_FOUR                          0
+
+// ADC I/O
+#define FORCE_SENSE_PLATE                       0
+
+// PWM
+#define PWM_VSLOT_ONE                           0
+#define PWM_VSLOT_TWO                           0
+#define PWM_VSLOT_TABLE                         0
+
+
+
+
 #endif /* DEFINES_H_ */
