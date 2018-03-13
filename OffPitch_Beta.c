@@ -15,6 +15,8 @@
 /* Project Includes */
 #include "defines.h"
 #include "UART_packet_interface.h"
+#include "peripheral_interfaces.h"
+#include "command_functions.h"
 #if DEBUG_LEVEL > 0
 #include "printf.h"
 #endif
@@ -89,6 +91,9 @@ int main(void) {
     MAP_Interrupt_enableMaster();
 
     struct commandPacket packet;
+
+    bool lastAction_notCompleted = false;
+
     UART_RingBuffer.end = 0;
     UART_RingBuffer.start = 0;
 
@@ -99,8 +104,14 @@ int main(void) {
         //MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN0);
         MAP_GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN3);
 
-
-        parse_UART_RingBuffer(&packet);
+        //check if the two pointers are equal
+        // if they are equal then there is data in the ring buffer
+        if ((UART_RingBuffer.end != UART_RingBuffer.start) && !lastAction_notCompleted){
+            parse_UART_RingBuffer(&packet);
+            if (packet.command == 0x13){    //this needs a lot more logic
+                moveVSlot_HAB();
+            }
+        }
     }
 }
 
@@ -159,5 +170,4 @@ void EUSCIA0_IRQHandler(void)
             UART_RingBuffer.end++;
         }
     }
-
 }
