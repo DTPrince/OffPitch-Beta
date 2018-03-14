@@ -12,6 +12,6 @@
 	<createSlaveProjects value=""/>
 	<ignoreDefaultDeviceSettings value="true"/>
 	<templateProperties value="id=timer_a_pwm_mode_MSP_EXP432P401R_nortos_ccs.projectspec.timer_a_pwm_mode_MSP_EXP432P401R_nortos_ccs,buildProfile=release,isHybrid=true,"/>
-	<origin value="C:\ti\simplelink_msp432p4_sdk_1_60_00_12\examples\nortos\MSP_EXP432P401R\driverlib\timer_a_pwm_mode\ccs\timer_a_pwm_mode_MSP_EXP432P401R_nortos_ccs.projectspec"/>
+	<origin value="/home/aetas/OffPitch-Beta"/>
 	<filesToOpen value=""/>
 </projectOptions>

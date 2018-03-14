@@ -26,10 +26,10 @@ Timer_A_PWMConfig pwmConfig =
 {
         TIMER_A_CLOCKSOURCE_SMCLK,
         TIMER_A_CLOCKSOURCE_DIVIDER_1,
-        32000,
+        60, // 40 = ~1.5Khz. Not
         TIMER_A_CAPTURECOMPARE_REGISTER_1,
         TIMER_A_OUTPUTMODE_RESET_SET,
-        3200
+        30
 };
 
 /* UART Config */
@@ -46,12 +46,29 @@ const eUSCI_UART_Config uartConfig =
         EUSCI_A_UART_OVERSAMPLING_BAUDRATE_GENERATION  // Oversampling
 };
 
+
+//Stepper Sketch:
+//2.4 : PWM
+//2.3 : DIR
+//1.7 : EN
+
 int main(void) {
     /* Halting the watchdog */
     MAP_WDT_A_holdTimer();
 
+
     /* Configuring P2.3 as output */
+    //DIRECTION
     MAP_GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN3);
+    /* Configuring P1.7 as output */
+    //ENABLE
+    MAP_GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN7);
+    //Green DIR=HIGH LED
+    MAP_GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN1);
+    //Blue DIR=LOW LED
+    MAP_GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN2);
+    //Red EN=HIGH (disabled) LED
+    MAP_GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0);
 
     /* Setting MCLK to REFO at 128Khz for LF mode
      * Setting SMCLK to 64Khz */
@@ -60,17 +77,19 @@ int main(void) {
     MAP_CS_initClockSignal(CS_SMCLK, CS_REFOCLK_SELECT, CS_CLOCK_DIVIDER_2);
     MAP_PCM_setPowerState(PCM_AM_LF_VCORE0);
 
+
     /* Configuring GPIO2.4 as peripheral output for PWM  and P6.7 for button
      * interrupt */
     MAP_GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P2, GPIO_PIN4,
             GPIO_PRIMARY_MODULE_FUNCTION);
-    MAP_GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P1, GPIO_PIN1);
-    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P1, GPIO_PIN1);
-    MAP_GPIO_enableInterrupt(GPIO_PORT_P1, GPIO_PIN1);
+    MAP_GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P1, GPIO_PIN1 | GPIO_PIN4);
+    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P1, GPIO_PIN1 | GPIO_PIN4);
+    MAP_GPIO_enableInterrupt(GPIO_PORT_P1, GPIO_PIN1 | GPIO_PIN4);
+
 
     /* Selecting P1.2 and P1.3 in UART mode */
     MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1,
-            GPIO_PIN1 | GPIO_PIN2 | GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
+            GPIO_PIN2 | GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
 
     /* Setting DCO to 12MHz */
     CS_setDCOCenteredFrequency(CS_DCO_FREQUENCY_12);
@@ -81,14 +100,26 @@ int main(void) {
 
     /* Enable UART module */
     MAP_UART_enableModule(EUSCI_A0_BASE);
-    //UART_enableModule(EUSCI_A0_BASE);
+    UART_enableModule(EUSCI_A0_BASE);
 
     /* Enabling interrupts and starting the watchdog timer */
     MAP_UART_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
     MAP_Interrupt_enableInterrupt(INT_EUSCIA0);
+
     MAP_Interrupt_enableInterrupt(INT_PORT1);
     MAP_Interrupt_enableSleepOnIsrExit();
     MAP_Interrupt_enableMaster();
+
+    //EN should be HIGH for disable.
+    MAP_GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN7);
+    //Turn on Red LED for disable notifier
+
+    //DIR should be whatever because we don;t know which way is which
+    MAP_GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN3);
+    //Turn on Green LED for DIR=HIGH
+    MAP_GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN1);
+    //Blue LED=LOW for DIR=HIGH.
+    MAP_GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN2);
 
     struct commandPacket packet;
 
@@ -100,18 +131,18 @@ int main(void) {
     /* Sleeping when not in use */
     while (1)
     {
+        //This puts it to sleep
         MAP_PCM_gotoLPM0();
-        //MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN0);
-        MAP_GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN3);
 
         //check if the two pointers are equal
         // if they are equal then there is data in the ring buffer
-        if ((UART_RingBuffer.end != UART_RingBuffer.start) && !lastAction_notCompleted){
-            parse_UART_RingBuffer(&packet);
-            if (packet.command == 0x13){    //this needs a lot more logic
-                moveVSlot_HAB();
-            }
-        }
+//        if ((UART_RingBuffer.end != UART_RingBuffer.start) && !lastAction_notCompleted){
+//            parse_UART_RingBuffer(&packet);
+//            if (packet.command == 0x13){    //this needs a lot more logic
+//                //moveVSlot_HAB();
+//
+//            }
+//        }
     }
 }
 
@@ -123,16 +154,21 @@ void PORT1_IRQHandler(void)
     uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P1);
     MAP_GPIO_clearInterruptFlag(GPIO_PORT_P1, status);
 
+    //
     if (status & GPIO_PIN1)
     {
-        if(pwmConfig.dutyCycle == 28800)
-            pwmConfig.dutyCycle = 3200;
-        else
-            pwmConfig.dutyCycle += 3200;
+        //Toggle
+        MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN7);
+        MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN0);
 
-        MAP_Timer_A_generatePWM(TIMER_A0_BASE, &pwmConfig);
+    } else if (status & GPIO_PIN4) {
+        MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P2, GPIO_PIN3);
+        MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P2, GPIO_PIN1);
+        MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P2, GPIO_PIN2);
     }
+
 }
+
 /* EUSCI A0 UART ISR - Fetches char from UART and stores in UART_RingBuffer for later */
 void EUSCIA0_IRQHandler(void)
 {
