@@ -24,6 +24,10 @@
 //Debug level
 #define DEBUG_LEVEL                             DEBUG_CRITICAL
 
+#define TABLE_POSITION_SPC                      0b100
+#define TABLE_POSITION_CEN                      0b010
+#define TABLE_POSITION_HAB                      0b001
+
 /* UART Packet masks */
 #define UART_TYPE                               0b11000000
 #define UART_COMMAND                            0b00111111
@@ -78,8 +82,8 @@
 //Inputs
 #define CAP_SENSE_TABLE                         0
 #define CAP_SENSE_PLATE                         0
-#define HALL_SENSE_VSLOT_ONE                    0
-#define HALL_SENSE_VSLOT_TWO                    0
+#define HALL_SENSE_VSLOT_TOP                    0
+#define HALL_SENSE_VSLOT_BOT                    0
 #define HALL_SENSE_DOOR_HAB                     0
 #define HALL_SENSE_DOOR_SPC                     0
 #define HALL_SENSE_HINGE_HAB                    0

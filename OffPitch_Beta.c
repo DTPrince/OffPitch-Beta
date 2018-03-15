@@ -128,6 +128,8 @@ int main(void) {
     UART_RingBuffer.end = 0;
     UART_RingBuffer.start = 0;
 
+    tablePosition = TABLE_POSITION_CEN;
+
     /* Sleeping when not in use */
     while (1)
     {
