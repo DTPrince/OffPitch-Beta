@@ -26,10 +26,10 @@ Timer_A_PWMConfig pwmConfig =
 {
         TIMER_A_CLOCKSOURCE_SMCLK,
         TIMER_A_CLOCKSOURCE_DIVIDER_1,
-        60, // 40 = ~1.5Khz. Not
+        120, // 40 = ~1.5Khz. 120 = 529Hz
         TIMER_A_CAPTURECOMPARE_REGISTER_1,
         TIMER_A_OUTPUTMODE_RESET_SET,
-        30
+        60
 };
 
 /* UART Config */
@@ -113,7 +113,7 @@ int main(void) {
     //EN should be HIGH for disable.
     MAP_GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN7);
     //Turn on Red LED for disable notifier
-
+    MAP_GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN0);
     //DIR should be whatever because we don;t know which way is which
     MAP_GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN3);
     //Turn on Green LED for DIR=HIGH
