@@ -135,14 +135,14 @@ int main(void) {
         MAP_PCM_gotoLPM0();
 
         //check if the two pointers are equal
-        // if they are equal then there is data in the ring buffer
-//        if ((UART_RingBuffer.end != UART_RingBuffer.start) && !lastAction_notCompleted){
-//            parse_UART_RingBuffer(&packet);
-//            if (packet.command == 0x13){    //this needs a lot more logic
-//                //moveVSlot_HAB();
-//
-//            }
-//        }
+        // if they are not equal then there is data in the ring buffer
+        if ((UART_RingBuffer.end != UART_RingBuffer.start) && !lastAction_notCompleted){
+            parse_UART_RingBuffer(&packet);
+            if (packet.command == 0x13){    //this needs a lot more logic
+                //moveVSlot_HAB();
+
+            }
+        }
     }
 }
 
