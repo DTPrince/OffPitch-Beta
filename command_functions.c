@@ -40,30 +40,23 @@ uint8_t moveVSlot_HAB() {
     case TABLE_POSITION_SPC:
         //might be worth creating a debugging version of this that doesn't argue about both doors being open
 #if DEBUG_LEVEL > 0
-        moveVSLot_CEN();
+        moveVSlot_CEN();
         tablePosition = TABLE_POSITION_CEN;
 #else
         return 1;   //this is only reached in the no-debugging compile type.
 #endif
     case TABLE_POSITION_CEN:
         //Set direction for required stepper to move HAB-side from center
-        set_stepperDirection((uint8_t)VSLOT_STEPPER_TOP, (bool)STEPPER_DIR_HAB);
+        set_stepperDirection(VSLOT_STEPPER_TOP_DIR, (bool)STEPPER_DIR_HAB);
         //enable stepper required to move from center to HAB
         //either stepper can work but I am defining TOP as the "move-hab-side" stepper
-        enable_stepper((uint8_t)VSLOT_STEPPER_TOP);
+        enable_stepper(VSLOT_STEPPER_TOP_EN);
         //Hall-effect goes low when magnet is sensed
-#if DEBUG_LEVEL > 0
-        unsigned int step_counter = 0;
-#endif
-        while (get_DOIPinState((uint8_t)HALL_SENSE_VSLOT_TOP)) {
-#if DEBUG_LEVEL > 0
-            step_counter++;
-#else
-            //nothing
-#endif
 
+        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP)) {
+            //nada
         }
-        disable_stepper((uint8_t)VSLOT_STEPPER_TOP);
+        disable_stepper(VSLOT_STEPPER_TOP_EN);
         tablePosition = TABLE_POSITION_HAB;
         return 0;
     case TABLE_POSITION_HAB:
@@ -71,9 +64,9 @@ uint8_t moveVSlot_HAB() {
     default:
         return 1;
     }
-    while(true){
-        return 0;
-    }
+//    while(true){
+//        return 0;
+//    }
 }
 
 uint8_t moveVSlot_SPC() {

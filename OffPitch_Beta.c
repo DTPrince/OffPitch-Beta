@@ -52,6 +52,8 @@ const eUSCI_UART_Config uartConfig =
 //2.3 : DIR
 //1.7 : EN
 
+uint8_t tablePosition;
+
 int main(void) {
     /* Halting the watchdog */
     MAP_WDT_A_holdTimer();

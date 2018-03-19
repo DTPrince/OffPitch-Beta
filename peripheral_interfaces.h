@@ -5,18 +5,18 @@
 #include <stdbool.h>
 
 //////////////////// PERIPH
-uint8_t enable_stepper(uint8_t stepper);
+uint8_t enable_stepper(int stepper_port, int stepper_pin);
 
-uint8_t disable_stepper(uint8_t stepper);
+uint8_t disable_stepper(int stepper_port, int stepper_pin);
 
-uint8_t set_stepperDirection(uint8_t stepper, bool direction);
+uint8_t set_stepperDirection(int stepper_port, int stepper_pin, bool direction);
 
-uint8_t set_stepperSpeed(uint8_t stepper, uint8_t speed);
+uint8_t set_stepperSpeed(int stepper_port, int stepper, int speed);
 
 // probs have to change the return and argument types after looking through documentation
-bool get_DIOPinState(uint8_t pin);
+bool get_DIOPinState(int stepper_port, int pin);
 
-int get_ADCValue(uint8_t pin);
+int get_ADCValue(int stepper_port, int pin);
 
 
 
