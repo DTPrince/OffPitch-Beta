@@ -8,6 +8,10 @@
 #ifndef DEFINES_H_
 #define DEFINES_H_
 
+#include <ti/devices/msp432p4xx/driverlib/driverlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+
 /* Defines UART RingBuffer size */
 #define BUFFER_SIZE 256 //512
 
@@ -80,37 +84,131 @@
 
 // Digital I/O
 //Inputs
-#define CAP_SENSE_TABLE                         0
-#define CAP_SENSE_PLATE                         0
-#define HALL_SENSE_VSLOT_TOP                    0
-#define HALL_SENSE_VSLOT_BOT                    0
-#define HALL_SENSE_DOOR_HAB                     0
-#define HALL_SENSE_DOOR_SPC                     0
-#define HALL_SENSE_HINGE_HAB                    0
-#define HALL_SENSE_HINGE_SPC                    0
+// Hall-Effect sensors //
+//Top VSlot HE sensor
+#define HALL_SENSE_VSLOT_TOP_PORT               GPIO_PORT_P1
+#define HALL_SENSE_VSLOT_TOP_PIN                GPIO_PIN1
+#define HALL_SENSE_VSLOT_TOP                    HALL_SENSE_VSLOT_TOP_PORT, HALL_SENSE_VSLOT_TOP_PIN
+//Bottom VSlot HE sensor
+#define HALL_SENSE_VSLOT_BOT_PORT               GPIO_PORT_P1
+#define HALL_SENSE_VSLOT_BOT_PIN                GPIO_PIN1
+#define HALL_SENSE_VSLOT_BOT                    HALL_SENSE_VSLOT_BOT_PORT, HALL_SENSE_VSLOT_BOT_PIN
+
+//Door closed HE Sensor - HAB
+#define HALL_SENSE_DOOR_HAB_PORT                GPIO_PORT_P1
+#define HALL_SENSE_DOOR_HAB_PIN                 GPIO_PIN1
+#define HALL_SENSE_DOOR_HAB                     HALL_SENSE_DOOR_HAB_PORT, HALL_SENSE_DOOR_HAB_PIN
+//Door closed HE Sensor - SPC
+#define HALL_SENSE_DOOR_SPC_PORT                GPIO_PORT_P1
+#define HALL_SENSE_DOOR_SPC_PIN                 GPIO_PIN1
+#define HALL_SENSE_DOOR_SPC                     HALL_SENSE_DOOR_SPC_PORT, HALL_SENSE_DOOR_SPC_PIN
+
+//Door open HE sensor - HAB
+#define HALL_SENSE_HINGE_HAB_PORT               GPIO_PORT_P1
+#define HALL_SENSE_HINGE_HAB_PIN                GPIO_PIN1
+#define HALL_SENSE_HINGE_HAB                    HALL_SENSE_HINGE_HAB_PORT, HALL_SENSE_HINGE_HAB_PIN
+//Door open HE sensor - SPC
+#define HALL_SENSE_HINGE_SPC_PORT               GPIO_PORT_P1
+#define HALL_SENSE_HINGE_SPC_PIN                GPIO_PIN1
+#define HALL_SENSE_HINGE_SPC                    HALL_SENSE_HINGE_SPC_PORT, HALL_SENSE_HINGE_SPC_PIN
+
+/* Capacitive Sensors */
+//Left capacitive sensor on the table as viewed from the HAB
+#define CAP_SENSE_TABLE_ONE_PORT                GPIO_PORT_P1
+#define CAP_SENSE_TABLE_ONE_PIN                 GPIO_PIN1
+#define CAP_SENSE_TABLE_ONE                     CAP_SENSE_TABLE_ONE_PORT. CAP_SENSE_TABLE_ONE_PIN
+//Right capacitive sensor on the table as viewed from the HAB
+#define CAP_SENSE_TABLE_TWO_PORT                GPIO_PORT_P1
+#define CAP_SENSE_TABLE_TWO_PIN                 GPIO_PIN1
+#define CAP_SENSE_TABLE_TWO                     CAP_SENSE_TABLE_TWO_PORT. CAP_SENSE_TABLE_TWO_PIN
+
+//Capacitive Sensor on the mating connection
+#define CAP_SENSE_MATE_PORT                     GPIO_PORT_P1
+#define CAP_SENSE_MATE_PIN                      GPIO_PIN1
+#define CAP_SENSE_MATE                          CAP_SENSE_MATE_PORT, CAP_SENSE_MATE_PIN
 
 //Outputs
-#define VSLOT_ONE_ENABLE                        0
-#define VSLOT_TWO_ENABLE                        0
-#define VSLOT_ONE_DIRECTION                     0
-#define VSLOT_TWO_DIRECTION                     0
-#define RELAY_DOOR_HAB                          0
-#define RELAY_DOOR_SPC                          0
+//Steppers //
+//Top stepper - Enable
+#define VSLOT_STEPPER_TOP_EN_PORT               GPIO_PORT_P1
+#define VSLOT_STEPPER_TOP_EN_PIN                GPIO_PIN1
+#define VSLOT_STEPPER_TOP_EN                    VSLOT_STEPPER_TOP_EN_PORT, VSLOT_STEPPER_TOP_EN_PIN
+//Top stepper - Direction
+#define VSLOT_STEPPER_TOP_DIR_PORT              GPIO_PORT_P1
+#define VSLOT_STEPPER_TOP_DIR_PIN               GPIO_PIN1
+#define VSLOT_STEPPER_TOP_DIR                   VSLOT_STEPPER_TOP_DIR_PORT, VSLOT_STEPPER_TOP_DIR_PIN
 
-#define BOARD_LED_ONE                           0
-#define BOARD_LED_TWO                           0
-#define BOARD_LED_THREE                         0
-#define BOARD_LED_FOUR                          0
+//Bottom stepper - Enable
+#define VSLOT_STEPPER_BOT_EN_PORT               GPIO_PORT_P1
+#define VSLOT_STEPPER_BOT_EN_PIN                GPIO_PIN1
+#define VSLOT_STEPPER_BOT_EN                    VSLOT_STEPPER_BOT_EN_PORT, VSLOT_STEPPER_BOT_EN_PIN
+//Bottom stepper - Direction
+#define VSLOT_STEPPER_BOT_DIR_PORT              GPIO_PORT_P1
+#define VSLOT_STEPPER_BOT_DIR_PIN               GPIO_PIN1
+#define VSLOT_STEPPER_BOT_DIR                   VSLOT_STEPPER_BOT_DIR_PORT, VSLOT_STEPPER_BOT_DIR_PIN
+
+//Experiment tray stepper - Enable
+#define EXP_STEPPER_EN_PORT                     GPIO_PORT_P1
+#define EXP_STEPPER_EN_PIN                      GPIO_PIN1
+#define EXP_STEPPER_EN                          EXP_STEPPER_EN_PORT, EXP_STEPPER_EN_PIN
+//Experiment tray stepper - Direction
+#define EXP_STEPPER_DIR_PORT                    GPIO_PORT_P1
+#define EXP_STEPPER_DIR_PIN                     GPIO_PIN1
+#define EXP_STEPPER_DIR                         EXP_STEPPER_DIR_PORT, EXP_STEPPER_DIR_PIN
+
+// Relay Controls //
+//Hab-side relay
+#define RELAY_DOOR_HAB_PORT                     GPIO_PORT_P1
+#define RELAY_DOOR_HAB_PIN                      GPIO_PIN1
+#define RELAY_DOOR_HAB                          RELAY_DOOR_HAB_PORT, RELAY_DOOR_HAB_PIN
+//Space-side relay
+#define RELAY_DOOR_SPC_PORT                     GPIO_PORT_P1
+#define RELAY_DOOR_SPC_PIN                      GPIO_PIN1
+#define RELAY_DOOR_SPC                          RELAY_DOOR_SPC_PORT, RELAY_DOOR_SPC_PIN
+
+// Board LEDs //
+#define BOARD_LED_ONE_PORT                      GPIO_PORT_P1
+#define BOARD_LED_ONE_PIN                       GPIO_PIN1
+#define BOARD_LED_ONE                           BOARD_LED_ONE_PORT, BOARD_LED_ONE_PIN
+
+#define BOARD_LED_TWO_PORT                      GPIO_PORT_P1
+#define BOARD_LED_TWO_PIN                       GPIO_PIN1
+#define BOARD_LED_TWO                           BOARD_LED_TWO_PORT, BOARD_LED_TWO_PIN
+
+#define BOARD_LED_THREE_PORT                    GPIO_PORT_P1
+#define BOARD_LED_THREE_PIN                     GPIO_PIN1
+#define BOARD_LED_THREE                         BOARD_LED_THREE_PORT, BOARD_LED_THREE_PIN
+
+#define BOARD_LED_FOUR_PORT                     GPIO_PORT_P1
+#define BOARD_LED_FOUR_PIN                      GPIO_PIN1
+#define BOARD_LED_FOUR                          BOARD_LED_FOUR_PORT, BOARD_LED_FOUR_PIN
+
 
 // ADC I/O
-#define FORCE_SENSE_PLATE                       0
+#define FORCE_SENSE_PLATE_PORT                  GPIO_PORT_P1
+#define FORCE_SENSE_PLATE_PIN                   GPIO_PIN1
+#define FORCE_SENSE_PLATE                       FORCE_SENSE_PLATE_PORT, FORCE_SENSE_PLATE_PIN
 
 // PWM
-#define PWM_VSLOT_ONE                           0
-#define PWM_VSLOT_TWO                           0
-#define PWM_VSLOT_TABLE                         0
+#define PWM_VSLOT_TOP_PORT                      GPIO_PORT_P1
+#define PWM_VSLOT_TOP_PIN                       GPIO_PIN1
+#define PWM_VSLOT_TOP                           PWM_VSLOT_TOP_PORT, PWM_VSLOT_TOP_PIN
 
+#define PWM_VSLOT_BOT_PORT                      GPIO_PORT_P1
+#define PWM_VSLOT_BOT_PIN                       GPIO_PIN1
+#define PWM_VSLOT_BOT                           PWM_VSLOT_BOT_PORT, PWM_VSLOT_BOT_PIN
 
+#define PWM_EXP_PORT                            GPIO_PORT_P1
+#define PWM_EXP_PIN                             GPIO_PIN1
+#define PWM_EXP                                 PWM_EXP_PORT, PWM_EXP_PIN
+
+/* Control Defines */
+//VSlot stepper direction controls
+#define STEPPER_DIR_HAB                         1
+#define STEPPER_DIR_SPC                         0
+//Experiment tray stepper direction controls
+#define STEPPER_DIR_CLOSE                       1
+#define STEPPER_DIR_OPEN                        0
 
 
 #endif /* DEFINES_H_ */
