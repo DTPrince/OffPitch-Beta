@@ -18,35 +18,36 @@
 #include "printf.h"
 #include "peripheral_interfaces.h"
 
-uint8_t enable_stepper(int stepper_port, int stepper_pin){
-    MAP_GPIO_setOutputHighOnPin(stepper_port, stepper_pin);
+uint8_t enable_stepper(int port, int pin){
+    MAP_GPIO_setOutputHighOnPin(port, pin);
     return 0;
 }
 
-uint8_t disable_stepper(int stepper_port, int stepper_pin){
-    MAP_GPIO_setOutputLowOnPin(stepper_port, stepper_pin);
+uint8_t disable_stepper(int port, int pin){
+    MAP_GPIO_setOutputLowOnPin(port, pin);
     return 0;
 }
 
-uint8_t set_stepperDirection(int stepper_port, int stepper_pin, bool direction){
+uint8_t set_stepperDirection(int port, int pin, bool direction){
     if(direction){
-        MAP_GPIO_setOutputLowOnPin(stepper_port, stepper_pin);
+        MAP_GPIO_setOutputLowOnPin(port, pin);
     } else {
-        MAP_GPIO_setOutputHighOnPin(stepper_port, stepper_pin);
+        MAP_GPIO_setOutputHighOnPin(port, pin);
     }
     return 0;
 }
 
-uint8_t set_stepperSpeed(int stepper_port, int stepper, int speed){
+uint8_t set_stepperSpeed(int port, int pin, int speed){
     //this will have to modify the timer counter values...
+    //Probably have an input of the timer struct as well...
     return 0;
 }
 
-bool get_DIOPinState(int stepper_port, int pin){
-    return 0;
+uint8_t get_DIOPinState(int port, int pin){
+    return MAP_GPIO_getInputPinValue(port, pin);
 }
 
-int get_ADCValue(int stepper_port, int pin){
+uint16_t get_ADCValue(int stepper_port, int pin){
     return 0;
 }
 

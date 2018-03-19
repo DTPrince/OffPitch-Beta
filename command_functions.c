@@ -53,7 +53,7 @@ uint8_t moveVSlot_HAB() {
         enable_stepper(VSLOT_STEPPER_TOP_EN);
         //Hall-effect goes low when magnet is sensed
 
-        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP)) {
+        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP) == 0) {
             //nada
         }
         disable_stepper(VSLOT_STEPPER_TOP_EN);
@@ -64,9 +64,6 @@ uint8_t moveVSlot_HAB() {
     default:
         return 1;
     }
-//    while(true){
-//        return 0;
-//    }
 }
 
 uint8_t moveVSlot_SPC() {
