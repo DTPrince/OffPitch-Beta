@@ -1,5 +1,5 @@
-#ifndef PERIPHERAL_INTERFACES_H
-#define PERIPHERAL_INTERFACES_H
+#ifndef PERIPHERAL_INTERFACES_H_
+#define PERIPHERAL_INTERFACES_H_
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -19,4 +19,4 @@ uint8_t get_DIOPinState(int port, int pin);
 uint16_t get_ADCValue(int port, int pin);
 
 
-#endif // PERIPHERAL_INTERFACES_H
+#endif // PERIPHERAL_INTERFACES_H_

@@ -46,15 +46,49 @@ const eUSCI_UART_Config uartConfig =
         EUSCI_A_UART_OVERSAMPLING_BAUDRATE_GENERATION  // Oversampling
 };
 
+/* Initialize function
+ * Sets the pinmodes, timer functions (PWM included), and ADC
+ */
+void initializeSettings();
 
 //Stepper Sketch:
 //2.4 : PWM
 //2.3 : DIR
 //1.7 : EN
 
-uint8_t tablePosition;
-
 int main(void) {
+
+    initializeSettings();
+
+    commandPacket packet;
+
+    bool lastAction_Completed = true;
+
+    //empty -- initialize to beginning.
+    UART_RingBuffer.end = 0;
+    UART_RingBuffer.start = 0;
+
+    tablePosition = TABLE_POSITION_CEN;
+
+    /* Sleeping when not in use */
+    while (1)
+    {
+        //This puts it to sleep
+        MAP_PCM_gotoLPM0();
+
+        //check if the two pointers are equal and that the MCU is done handling the last packet command.
+        // if they are not equal then there is data in the ring buffer
+        if ((UART_RingBuffer.end != UART_RingBuffer.start) && lastAction_Completed){
+            parse_UART_RingBuffer(&packet);
+            if (packet.command == 0x13){    //this needs a lot more logic
+                //moveVSlot_HAB();
+
+            }
+        }
+    }
+}
+
+void initializeSettings(){
     /* Halting the watchdog */
     MAP_WDT_A_holdTimer();
 
@@ -122,32 +156,6 @@ int main(void) {
     MAP_GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN1);
     //Blue LED=LOW for DIR=HIGH.
     MAP_GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN2);
-
-    struct commandPacket packet;
-
-    bool lastAction_notCompleted = false;
-
-    UART_RingBuffer.end = 0;
-    UART_RingBuffer.start = 0;
-
-    tablePosition = TABLE_POSITION_CEN;
-
-    /* Sleeping when not in use */
-    while (1)
-    {
-        //This puts it to sleep
-        MAP_PCM_gotoLPM0();
-
-        //check if the two pointers are equal
-        // if they are not equal then there is data in the ring buffer
-        if ((UART_RingBuffer.end != UART_RingBuffer.start) && !lastAction_notCompleted){
-            parse_UART_RingBuffer(&packet);
-            if (packet.command == 0x13){    //this needs a lot more logic
-                //moveVSlot_HAB();
-
-            }
-        }
-    }
 }
 
 /* Port1 ISR - This ISR will progressively step up the duty cycle of the PWM
@@ -211,3 +219,5 @@ void EUSCIA0_IRQHandler(void)
         }
     }
 }
+
+

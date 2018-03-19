@@ -16,7 +16,7 @@
  *  Description:
  *
  */
-void parse_UART_RingBuffer(struct commandPacket *packet){
+void parse_UART_RingBuffer(commandPacket *packet){
     // Grab type
     packet->type = UART_RingBuffer.data[UART_RingBuffer.start] & UART_TYPE;
     // Grab command

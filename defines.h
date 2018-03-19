@@ -31,6 +31,11 @@
 #define TABLE_POSITION_SPC                      0b100
 #define TABLE_POSITION_CEN                      0b010
 #define TABLE_POSITION_HAB                      0b001
+//Table position state
+//0b100 : Table space side | TABLE_POSITION_SPC
+//0b010 : Table center     | TABLE_POSITION_CEN
+//0b001 : Table hab side   | TABLE_POSITION_HAB
+uint8_t tablePosition;
 
 /* UART Packet masks */
 #define UART_TYPE                               0b11000000
@@ -116,11 +121,11 @@
 //Left capacitive sensor on the table as viewed from the HAB
 #define CAP_SENSE_TABLE_ONE_PORT                GPIO_PORT_P1
 #define CAP_SENSE_TABLE_ONE_PIN                 GPIO_PIN1
-#define CAP_SENSE_TABLE_ONE                     CAP_SENSE_TABLE_ONE_PORT. CAP_SENSE_TABLE_ONE_PIN
+#define CAP_SENSE_TABLE_ONE                     CAP_SENSE_TABLE_ONE_PORT, CAP_SENSE_TABLE_ONE_PIN
 //Right capacitive sensor on the table as viewed from the HAB
 #define CAP_SENSE_TABLE_TWO_PORT                GPIO_PORT_P1
 #define CAP_SENSE_TABLE_TWO_PIN                 GPIO_PIN1
-#define CAP_SENSE_TABLE_TWO                     CAP_SENSE_TABLE_TWO_PORT. CAP_SENSE_TABLE_TWO_PIN
+#define CAP_SENSE_TABLE_TWO                     CAP_SENSE_TABLE_TWO_PORT, CAP_SENSE_TABLE_TWO_PIN
 
 //Capacitive Sensor on the mating connection
 #define CAP_SENSE_MATE_PORT                     GPIO_PORT_P1
@@ -209,6 +214,10 @@
 //Experiment tray stepper direction controls
 #define STEPPER_DIR_CLOSE                       1
 #define STEPPER_DIR_OPEN                        0
+
+#define TABLE_CAP_SENSE_ONE                     0b01
+#define TABLE_CAP_SENSE_TWO                     0b10
+#define TABLE_CAP_SENSE_BOTH                    0b11
 
 
 #endif /* DEFINES_H_ */

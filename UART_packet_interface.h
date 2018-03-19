@@ -17,7 +17,7 @@
 
 #include "defines.h"
 
-struct RingBuffer {
+typedef struct RingBuffer {
 #if BUFFER_SIZE == 256
     uint8_t end;
     uint8_t start;
@@ -28,15 +28,16 @@ struct RingBuffer {
     uint16_t start;
 #endif
     unsigned char data[BUFFER_SIZE];
-} UART_RingBuffer;
+} ringBuffer;
+ringBuffer UART_RingBuffer;
 
-struct commandPacket {
+typedef struct CommandPacket {
     uint8_t type;
     uint8_t command;
     uint8_t length;
     uint8_t data[sizeof(int)];
-};
+} commandPacket;
 
-void parse_UART_RingBuffer(struct commandPacket *packet);
+void parse_UART_RingBuffer(commandPacket *packet);
 
 #endif /* UART_PACKET_INTERFACE_H_ */
