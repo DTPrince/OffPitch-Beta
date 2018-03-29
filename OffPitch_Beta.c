@@ -108,7 +108,7 @@ void initializeSettings(){
 
     /* Setting MCLK to REFO at 128Khz for LF mode
      * Setting SMCLK to 64Khz */
-    MAP_CS_setReferenceOscillatorFrequency(CS_REFO_128KHZ);
+    MAP_CS_setReferenceOscillatorFrequency(CS_REFO_128KHZ);//
     MAP_CS_initClockSignal(CS_MCLK, CS_REFOCLK_SELECT, CS_CLOCK_DIVIDER_1);
     MAP_CS_initClockSignal(CS_SMCLK, CS_REFOCLK_SELECT, CS_CLOCK_DIVIDER_2);
     MAP_PCM_setPowerState(PCM_AM_LF_VCORE0);
@@ -135,8 +135,8 @@ void initializeSettings(){
     MAP_Timer_A_generatePWM(TIMER_A0_BASE, &pwmConfig);
 
     /* Enable UART module */
+    MAP_UART_initModule(EUSCI_A0_BASE, &uartConfig);
     MAP_UART_enableModule(EUSCI_A0_BASE);
-    UART_enableModule(EUSCI_A0_BASE);
 
     /* Enabling interrupts and starting the watchdog timer */
     MAP_UART_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
@@ -194,6 +194,9 @@ void EUSCIA0_IRQHandler(void)
     if(status & EUSCI_A_UART_RECEIVE_INTERRUPT_FLAG)
     {
         char buffer_char = MAP_UART_receiveData(EUSCI_A0_BASE);
+#if DEBUG_LEVEL > 0
+        MAP_UART_transmitData(EUSCI_A0_BASE, buffer_char);
+#endif
 
         //Clean out spaces and formatting for the buffer
         if (buffer_char != ('\n' || '\r' || '\t' || ' ')){
@@ -209,7 +212,7 @@ void EUSCIA0_IRQHandler(void)
 
                 //Send string message
                 // REQUIRED: terminate with \n newline. This is the 'end of message' key to look for
-                printf(EUSCI_A0_BASE, "Ring buffer has overrun tail at: %d\n", (unsigned char)UART_RingBuffer.end);
+//                printf(EUSCI_A0_BASE, "Ring buffer has overrun tail at: %d\n", (unsigned char)UART_RingBuffer.end);
 #endif
             }
             //Append data to ring buffer
