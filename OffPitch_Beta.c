@@ -50,7 +50,7 @@ const eUSCI_UART_Config uartConfig =
  * Sets the pinmodes, timer functions (PWM included), and ADC
  */
 void initializeSettings();
-
+void HALT();
 //Stepper Sketch:
 //2.4 : PWM
 //2.3 : DIR
@@ -61,6 +61,12 @@ int main(void) {
     initializeSettings();
 
     commandPacket packet;
+    commandPacket packet_previous;
+    packet_previous.type = (uint8_t)UART_TYPE_COMMAND;
+    packet_previous.command = (uint8_t)UART_COMMAND_NOP;
+    packet_previous.length = 0;
+    // Not setting data to 0 here to save instructions but also because any data that
+    // comes with a packet of data length 0 is invalid by definition
 
     bool lastAction_Completed = true;
 
@@ -71,19 +77,207 @@ int main(void) {
     tablePosition = TABLE_POSITION_CEN;
 
     /* Sleeping when not in use */
-    while (1)
-    {
-        //This puts it to sleep
+    while (1){
+        //sleep
         MAP_PCM_gotoLPM0();
 
         //check if the two pointers are equal and that the MCU is done handling the last packet command.
         // if they are not equal then there is data in the ring buffer
         if ((UART_RingBuffer.end != UART_RingBuffer.start) && lastAction_Completed){
+            lastAction_Completed = false;
             parse_UART_RingBuffer(&packet);
-            if (packet.command == 0x13){    //this needs a lot more logic
-                //moveVSlot_HAB();
+            switch (packet.type){
+            //Control commands
+            case UART_COMMAND_NOP:
+                // no operation
+                break;
 
+            //HALT would be here but is taken care of in the ISR
+            case UART_COMMAND_BURP:
+                //send last packet back.
+                send_packet(&packet_previous);
+                break;
+
+            //Table Commands
+            case UART_COMMAND_CLAMP_EXPERIMENT:
+                // if the packet requests a acknowledge...
+                if (packet.type == UART_TYPE_ACK){
+                    //add the command return to data
+                    packet.length = 1;
+                    packet.data[0] = clampExperiment();
+                    //send the packet
+                    send_packet(&packet);
+                } else {
+                    clampExperiment();
+                }
+                break;
+
+            case UART_COMMAND_RELEASE_EXPERIMENT:
+                // if the packet requests a acknowledge...
+                if (packet.type == UART_TYPE_ACK){
+                    //add the command return to data
+                    packet.length = 1;
+                    packet.data[0] = releaseExperiment();
+                    //send the packet
+                    send_packet(&packet);
+                } else {
+                    releaseExperiment();
+                }
+                break;
+
+            case UART_COMMAND_MV_TABLE_HAB:
+                // if the packet requests a acknowledge...
+                if (packet.type == UART_TYPE_ACK){
+                    //add the command return to data
+                    packet.length = 1;
+                    packet.data[0] = moveVSlot_HAB();
+                    //send the packet
+                    send_packet(&packet);
+                } else {
+                    moveVSlot_HAB();
+                }
+                break;
+
+            case UART_COMMAND_MV_TABLE_CEN:
+                // if the packet requests a acknowledge...
+                if (packet.type == UART_TYPE_ACK){
+                    //add the command return to data
+                    packet.length = 1;
+                    packet.data[0] = moveVSlot_CEN();
+                    //send the packet
+                    send_packet(&packet);
+                } else {
+                    moveVSlot_CEN();
+                }
+                break;
+
+            case UART_COMMAND_MV_TABLE_SPC:
+                // if the packet requests a acknowledge...
+                if (packet.type == UART_TYPE_ACK){
+                    //add the command return to data
+                    packet.length = 1;
+                    packet.data[0] = moveVSlot_SPC();
+                    //send the packet
+                    send_packet(&packet);
+                } else {
+                    moveVSlot_SPC();
+                }
+                break;
+
+            //Door Commands
+            case UART_COMMAND_OPEN_HAB:
+                // if the packet requests a acknowledge...
+                if (packet.type == UART_TYPE_ACK){
+                    //add the command return to data
+                    packet.length = 1;
+                    packet.data[0] = open_HABDoor();
+                    //send the packet
+                    send_packet(&packet);
+                } else {
+                    open_HABDoor();
+                }
+                break;
+
+            case UART_COMMAND_OPEN_SPC:
+                // if the packet requests a acknowledge...
+                if (packet.type == UART_TYPE_ACK){
+                    //add the command return to data
+                    packet.length = 1;
+                    packet.data[0] = open_SPCDoor();
+                    //send the packet
+                    send_packet(&packet);
+                } else {
+                    open_SPCDoor();
+                }
+                break;
+
+            case UART_COMMAND_CLOSE_HAB:
+                // if the packet requests a acknowledge...
+                if (packet.type == UART_TYPE_ACK){
+                    //add the command return to data
+                    packet.length = 1;
+                    packet.data[0] = close_HABDoor();
+                    //send the packet
+                    send_packet(&packet);
+                } else {
+                    close_HABDoor();
+                }
+                break;
+
+            case UART_COMMAND_CLOSE_SPC:
+                // if the packet requests a acknowledge...
+                if (packet.type == UART_TYPE_ACK){
+                    //add the command return to data
+                    packet.length = 1;
+                    packet.data[0] = close_SPCDoor();
+                    //send the packet
+                    send_packet(&packet);
+                } else {
+                    close_SPCDoor();
+                }
+                break;
+
+            //Data commands
+            case UART_COMMAND_DATA_TABLE_CAP_SENSE:
+                packet.length = 1;
+                packet.data[0] = get_tableCapSense();
+                send_packet(&packet);
+                break;
+
+            case UART_COMMAND_DATA_PLATE_CAP_SENSE:
+                packet.length = 1;
+                packet.data[0] = (uint8_t)get_plateCapSense();
+                send_packet(&packet);
+                break;
+
+            case UART_COMMAND_DATA_TABLE_FORCE_SENSE:
+                uint16_t forceValue;
+                packet.length = 2;
+                forceValue = get_tableForceSense();
+                //note how these are packed out of order to ensure high-bits are transmitted first.
+                // This is to allow them to be shifted into place upon reception.
+                packet.data[1] = (uint8_t)(forceValue & 0xFF);
+                forceValue = forceValue >> 8;
+                packet.data[0] = (uint8_t)(forceValue & 0xFF);
+                break;
+
+            case UART_COMMAND_DATA_HAB_DOOR_HE_SENSE:
+                packet.length = 1;
+                packet.data[0] = (uint8_t)get_plateCapSense();
+                send_packet(&packet);
+                break;
+
+            case UART_COMMAND_DATA_SPC_DOOR_HE_SENSE:
+                packet.length = 1;
+                packet.data[0] = (uint8_t)get_plateCapSense();
+                send_packet(&packet);
+                break;
+
+            case UART_COMMAND_DATA_HAB_HINGE_HE_SENSE:
+                packet.length = 1;
+                packet.data[0] = (uint8_t)get_plateCapSense();
+                send_packet(&packet);
+                break;
+
+            case UART_COMMAND_DATA_SPC_HINGE_HE_SENSE:
+                packet.length = 1;
+                packet.data[0] = (uint8_t)get_plateCapSense();
+                send_packet(&packet);
+                break;
+
+            case UART_COMMAND_DATA_TEMPERATURE:
+                packet.length = 1;
+                packet.data[0] = 0; //rand();
+                send_packet(&packet);
+                break;
+
+            // Default
+            default:
+                //add debugging flag here (verbose)
+                break;
             }
+            lastAction_Completed = true;
+            packet_previous = packet;
         }
     }
 }
@@ -200,6 +394,8 @@ void EUSCIA0_IRQHandler(void)
 
         //Clean out spaces and formatting for the buffer
         if (buffer_char != ('\n' || '\r' || '\t' || ' ')){
+            if (buffer_char == UART_COMMAND_HALT)
+                HALT();
             //Loop around if at end of buffer
             if (UART_RingBuffer.end == BUFFER_SIZE){
                 UART_RingBuffer.end = 0;
@@ -221,6 +417,10 @@ void EUSCIA0_IRQHandler(void)
             UART_RingBuffer.end++;
         }
     }
+}
+
+void HALT(){
+
 }
 
 
