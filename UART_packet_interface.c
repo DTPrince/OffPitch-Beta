@@ -79,3 +79,12 @@ void parse_UART_RingBuffer(commandPacket *packet){
         UART_RingBuffer.start++;
     }
 }
+
+void send_packet(commandPacket * packet){
+    MAP_UART_transmitData(EUSCI_A0_BASE, packet->type);
+    MAP_UART_transmitData(EUSCI_A0_BASE, packet->command);
+    MAP_UART_transmitData(EUSCI_A0_BASE, packet->length);
+    uint8_t iter = 0;
+    for (iter = 0; iter < packet->length; iter++)
+        MAP_UART_transmitData(EUSCI_A0_BASE, packet->data[iter]);
+}
