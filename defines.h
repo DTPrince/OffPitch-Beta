@@ -37,6 +37,34 @@
 //0b001 : Table hab side   | TABLE_POSITION_HAB
 uint8_t tablePosition;
 
+typedef struct CapacitiveSensors {
+    bool plateCapSense;
+    bool tableCapSense1;
+    bool tableCapSense2;
+} capacitiveSensor;
+capacitiveSensor capSense;
+
+//package hall-effect sensors by location
+typedef struct VSlotHESense {
+    bool top;
+    bool bot;
+} vSlotHESense;
+typedef struct DoorHESense {
+    bool hab;
+    bool spc;
+} doorHESense;
+typedef struct HingeHESense {
+    bool hab;
+    bool spc;
+} hingeHESense;
+//create full struct package. We Java now.
+typedef struct HallEffectSensors {
+    vSlotHESense vslot;
+    doorHESense door;
+    hingeHESense hinge;
+} hallEffectSensors;
+hallEffectSensors heSense;
+
 /* UART Packet masks */
 #define UART_TYPE                               0b11000000
 #define UART_COMMAND                            0b00111111
