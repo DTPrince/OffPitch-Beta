@@ -336,7 +336,13 @@ void initializeSettings(){
     MAP_UART_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
     MAP_Interrupt_enableInterrupt(INT_EUSCIA0);
 
+    //enable as needed. Pretty much just for capacitive sensors to avoid polling
     MAP_Interrupt_enableInterrupt(INT_PORT1);
+//    MAP_Interrupt_enableInterrupt(INT_PORT2);
+//    MAP_Interrupt_enableInterrupt(INT_PORT3);
+//    MAP_Interrupt_enableInterrupt(INT_PORT4);
+//    MAP_Interrupt_enableInterrupt(INT_PORT5);
+//    MAP_Interrupt_enableInterrupt(INT_PORT6);
     MAP_Interrupt_enableSleepOnIsrExit();
     MAP_Interrupt_enableMaster();
 
@@ -355,19 +361,17 @@ void initializeSettings(){
 /* Port1 ISR - This ISR will progressively step up the duty cycle of the PWM
  * on a button press
  */
-void PORT1_IRQHandler(void)
-{
+void PORT1_IRQHandler(void){
     uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P1);
     MAP_GPIO_clearInterruptFlag(GPIO_PORT_P1, status);
 
     //
-    if (status & GPIO_PIN1)
-    {
+    if (status & GPIO_PIN1) {
         //Toggle
         MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN7);
         MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN0);
-
-    } else if (status & GPIO_PIN4) {
+    }
+    if (status & GPIO_PIN4) {
         MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P2, GPIO_PIN3);
         MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P2, GPIO_PIN1);
         MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P2, GPIO_PIN2);
@@ -375,9 +379,53 @@ void PORT1_IRQHandler(void)
 
 }
 
+void PORT2_IRQHandler(void){
+    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P2);
+    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P2, status);
+
+    if (status & GPIO_PIN4) {
+        break;
+    }
+}
+
+void PORT3_IRQHandler(void){
+    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P3);
+    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P3, status);
+
+    if (status & GPIO_PIN4) {
+        break;
+    }
+}
+
+void PORT4_IRQHandler(void){
+    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P4);
+    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P4, status);
+
+    if (status & GPIO_PIN4) {
+        break;
+    }
+}
+
+void PORT5_IRQHandler(void){
+    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P5);
+    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P5, status);
+
+    if (status & GPIO_PIN4) {
+        break;
+    }
+}
+
+void PORT6_IRQHandler(void){
+    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P6);
+    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P6, status);
+
+    if (status & GPIO_PIN4) {
+        break;
+    }
+}
+
 /* EUSCI A0 UART ISR - Fetches char from UART and stores in UART_RingBuffer for later */
-void EUSCIA0_IRQHandler(void)
-{
+void EUSCIA0_IRQHandler(void){
     //fetch status register for interrupt data
     uint32_t status = MAP_UART_getEnabledInterruptStatus(EUSCI_A0_BASE);
 
