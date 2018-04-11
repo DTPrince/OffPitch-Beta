@@ -231,6 +231,7 @@ int main(void) {
                 break;
 
             case UART_COMMAND_DATA_TABLE_FORCE_SENSE:
+            {
                 uint16_t forceValue;
                 packet.length = 2;
                 forceValue = get_tableForceSense();
@@ -240,7 +241,7 @@ int main(void) {
                 forceValue = forceValue >> 8;
                 packet.data[0] = (uint8_t)(forceValue & 0xFF);
                 break;
-
+            }
             case UART_COMMAND_DATA_HAB_DOOR_HE_SENSE:
                 packet.length = 1;
                 packet.data[0] = (uint8_t)get_plateCapSense();
@@ -384,7 +385,7 @@ void PORT2_IRQHandler(void){
     MAP_GPIO_clearInterruptFlag(GPIO_PORT_P2, status);
 
     if (status & GPIO_PIN4) {
-        break;
+        //do things
     }
 }
 
@@ -393,7 +394,7 @@ void PORT3_IRQHandler(void){
     MAP_GPIO_clearInterruptFlag(GPIO_PORT_P3, status);
 
     if (status & GPIO_PIN4) {
-        break;
+        //do things
     }
 }
 
@@ -402,7 +403,7 @@ void PORT4_IRQHandler(void){
     MAP_GPIO_clearInterruptFlag(GPIO_PORT_P4, status);
 
     if (status & GPIO_PIN4) {
-        break;
+        //do things
     }
 }
 
@@ -411,7 +412,7 @@ void PORT5_IRQHandler(void){
     MAP_GPIO_clearInterruptFlag(GPIO_PORT_P5, status);
 
     if (status & GPIO_PIN4) {
-        break;
+        //do things
     }
 }
 
@@ -420,7 +421,7 @@ void PORT6_IRQHandler(void){
     MAP_GPIO_clearInterruptFlag(GPIO_PORT_P6, status);
 
     if (status & GPIO_PIN4) {
-        break;
+        //do things
     }
 }
 
