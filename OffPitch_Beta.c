@@ -290,16 +290,16 @@ void initializeSettings(){
 
     /* Configuring P2.3 as output */
     //DIRECTION
-    MAP_GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN3);
+//    MAP_GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN3);
     /* Configuring P1.7 as output */
     //ENABLE
-    MAP_GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN7);
+//    MAP_GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN7);
     //Green DIR=HIGH LED
-    MAP_GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN1);
+//    MAP_GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN1);
     //Blue DIR=LOW LED
-    MAP_GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN2);
+//    MAP_GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN2);
     //Red EN=HIGH (disabled) LED
-    MAP_GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0);
+//    MAP_GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0);
 
     /* Setting MCLK to REFO at 128Khz for LF mode
      * Setting SMCLK to 64Khz */
@@ -377,6 +377,24 @@ void PORT1_IRQHandler(void){
         MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P2, GPIO_PIN1);
         MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P2, GPIO_PIN2);
     }
+    if (status & GPIO_PIN5) {
+        if (GPIO_getInputPinValue(CAP_SENSE_TABLE_ONE) > 0)
+            capSense.tableCapSense1 = true;
+        else
+            capSense.tableCapSense1 = false;
+    }
+    if (status & GPIO_PIN6) {
+        if (GPIO_getInputPinValue(CAP_SENSE_TABLE_TWO) > 0)
+            capSense.tableCapSense2 = true;
+        else
+            capSense.tableCapSense2 = false;
+    }
+    if (status & GPIO_PIN7) {
+        if (GPIO_getInputPinValue(CAP_SENSE_MATE) > 0)
+            capSense.plateCapSense = true;
+        else
+            capSense.plateCapSense = false;
+    }
 
 }
 
@@ -384,7 +402,25 @@ void PORT2_IRQHandler(void){
     uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P2);
     MAP_GPIO_clearInterruptFlag(GPIO_PORT_P2, status);
 
+    if (status & GPIO_PIN1) {
+        //do things
+    }
+    if (status & GPIO_PIN2) {
+        //do things
+    }
+    if (status & GPIO_PIN3) {
+        //do things
+    }
     if (status & GPIO_PIN4) {
+        //do things
+    }
+    if (status & GPIO_PIN5) {
+        //do things
+    }
+    if (status & GPIO_PIN6) {
+        //do things
+    }
+    if (status & GPIO_PIN7) {
         //do things
     }
 }
@@ -392,9 +428,41 @@ void PORT2_IRQHandler(void){
 void PORT3_IRQHandler(void){
     uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P3);
     MAP_GPIO_clearInterruptFlag(GPIO_PORT_P3, status);
-
+    if (status & GPIO_PIN1) {
+        //do things
+    }
+    if (status & GPIO_PIN2) {
+        if (GPIO_getInputPinValue(HALL_SENSE_VSLOT_TOP) > 0)
+            heSense.vslot.top = false;
+        else
+            heSense.vslot.top = true;
+    }
+    if (status & GPIO_PIN3) {
+       if (GPIO_getInputPinValue(HALL_SENSE_VSLOT_BOT) > 0)
+           heSense.vslot.bot = false;
+       else
+           heSense.vslot.bot = true;
+    }
     if (status & GPIO_PIN4) {
         //do things
+    }
+    if (status & GPIO_PIN5) {
+        if (GPIO_getInputPinValue(HALL_SENSE_DOOR_HAB) > 0)
+            heSense.door.hab = false;
+        else
+            heSense.door.hab = true;
+    }
+    if (status & GPIO_PIN6) {
+        if (GPIO_getInputPinValue(HALL_SENSE_DOOR_SPC) > 0)
+            heSense.door.spc = false;
+        else
+            heSense.door.spc = true;
+    }
+    if (status & GPIO_PIN7) {
+        if (GPIO_getInputPinValue(HALL_SENSE_HINGE_HAB) > 0)
+            heSense.hinge.hab = false;
+        else
+            heSense.hinge.hab = true;
     }
 }
 
@@ -402,8 +470,32 @@ void PORT4_IRQHandler(void){
     uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P4);
     MAP_GPIO_clearInterruptFlag(GPIO_PORT_P4, status);
 
+    if (status & GPIO_PIN0) {
+        if (GPIO_getInputPinValue(HALL_SENSE_HINGE_SPC) > 0)
+            heSense.hinge.spc = false;
+        else
+            heSense.hinge.spc = true;
+    }
+    if (status & GPIO_PIN1) {
+      //do things
+    }
+    if (status & GPIO_PIN2) {
+       //do things
+    }
+    if (status & GPIO_PIN3) {
+       //do things
+    }
     if (status & GPIO_PIN4) {
         //do things
+    }
+    if (status & GPIO_PIN5) {
+       //do things
+    }
+    if (status & GPIO_PIN6) {
+       //do things
+    }
+    if (status & GPIO_PIN7) {
+       //do things
     }
 }
 
@@ -411,7 +503,25 @@ void PORT5_IRQHandler(void){
     uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P5);
     MAP_GPIO_clearInterruptFlag(GPIO_PORT_P5, status);
 
+    if (status & GPIO_PIN1) {
+        //do things
+    }
+    if (status & GPIO_PIN2) {
+       //do things
+    }
+    if (status & GPIO_PIN3) {
+        //do things
+    }
     if (status & GPIO_PIN4) {
+         //do things
+    }
+    if (status & GPIO_PIN5) {
+        //do things
+    }
+    if (status & GPIO_PIN6) {
+        //do things
+    }
+    if (status & GPIO_PIN7) {
         //do things
     }
 }
@@ -420,7 +530,25 @@ void PORT6_IRQHandler(void){
     uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P6);
     MAP_GPIO_clearInterruptFlag(GPIO_PORT_P6, status);
 
+    if (status & GPIO_PIN1) {
+        //do things
+    }
+    if (status & GPIO_PIN2) {
+        //do things
+    }
+    if (status & GPIO_PIN3) {
+        //do things
+    }
     if (status & GPIO_PIN4) {
+        //do things
+    }
+    if (status & GPIO_PIN5) {
+        //do things
+    }
+    if (status & GPIO_PIN6) {
+        //do things
+    }
+    if (status & GPIO_PIN7) {
         //do things
     }
 }
