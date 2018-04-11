@@ -194,8 +194,8 @@ hallEffectSensors heSense;
 #define SWITCH_DOOR_HAB_PIN                     GPIO_PIN7
 #define SWITCH_DOOR_HAB                         SWITCH_DOOR_HAB_PORT, SWITCH_DOOR_HAB_PIN
 
-#define SWITCH_DOOR_SPC_PORT                    GPIO_PORT_P2
-#define SWITCH_DOOR_SPC_PIN                     GPIO_PIN7
+#define SWITCH_DOOR_SPC_PORT                    GPIO_PORT_P3
+#define SWITCH_DOOR_SPC_PIN                     GPIO_PIN0
 #define SWITCH_DOOR_SPC                         SWITCH_DOOR_SPC_PORT, SWITCH_DOOR_SPC_PIN
 
 // Relay Controls //
