@@ -36,7 +36,7 @@
 //
 //*****************************************************************************
 
-// This file was automatically generated on 4/2/2018 at 11:13:14 PM
+// This file was automatically generated on 4/11/2018 at 12:08:18 PM
 // by TI PinMux version 4.0.1511 
 //
 //*****************************************************************************
@@ -210,6 +210,12 @@ GPIO_PinConfig gpioPinConfigs[] = {
     GPIOMSP432_P3_6 | GPIO_CFG_IN_PD | GPIO_CFG_INT_INT_BOTH_EDGE,
     GPIOMSP432_P3_7 | GPIO_CFG_IN_PD | GPIO_CFG_INT_INT_BOTH_EDGE,
     GPIOMSP432_P4_0 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_NONE,
+    GPIOMSP432_P4_1 | GPIO_CFG_OUT_OD_PU | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW,
+    GPIOMSP432_P4_2 | GPIO_CFG_OUT_OD_PU | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW,
+    GPIOMSP432_P4_4 | GPIO_CFG_OUT_OD_PD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_HIGH,
+    GPIOMSP432_P4_5 | GPIO_CFG_OUT_OD_PD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_HIGH,
+    GPIOMSP432_P4_6 | GPIO_CFG_OUT_OD_PU | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW,
+    GPIOMSP432_P4_7 | GPIO_CFG_OUT_OD_PD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_HIGH,
 };
 
 /*

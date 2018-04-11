@@ -36,7 +36,7 @@
 //
 //*****************************************************************************
 
-// This file was automatically generated on 4/2/2018 at 11:13:14 PM
+// This file was automatically generated on 4/11/2018 at 12:08:18 PM
 // by TI PinMux version 4.0.1511 
 //
 //*****************************************************************************
@@ -100,6 +100,12 @@ typedef enum Board_GPIOName {
     DoorHESense1 = 16,
     HingeHESense0 = 17,
     HingeHESense1 = 18,
+    VSlotEnable0 = 19,
+    VSlotEnable1 = 20,
+    VSlotDirection0 = 21,
+    VSlotDirection1 = 22,
+    TableClampEnable = 23,
+    TableClampDirection = 24,
     Board_GPIOCOUNT
 } Board_GPIOName;
 
