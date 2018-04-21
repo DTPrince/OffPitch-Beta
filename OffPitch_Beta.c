@@ -26,10 +26,10 @@ Timer_A_PWMConfig pwmConfig =
 {
         TIMER_A_CLOCKSOURCE_SMCLK,
         TIMER_A_CLOCKSOURCE_DIVIDER_1,
-        120, // 40 = ~1.5Khz. 120 = 529Hz
+        150, // 40 = ~1.5Khz. 120 = 529Hz
         TIMER_A_CAPTURECOMPARE_REGISTER_1,
         TIMER_A_OUTPUTMODE_RESET_SET,
-        60
+        75
 };
 
 /* UART Config */
@@ -58,7 +58,7 @@ void initializeSettings();
 
 int main(void) {
 
-    initializeSettings();
+    //initializeSettings();
 
     commandPacket packet;
 
@@ -78,13 +78,13 @@ int main(void) {
 
         //check if the two pointers are equal and that the MCU is done handling the last packet command.
         // if they are not equal then there is data in the ring buffer
-        if ((UART_RingBuffer.end != UART_RingBuffer.start) && lastAction_Completed){
-            parse_UART_RingBuffer(&packet);
-            if (packet.command == 0x13){    //this needs a lot more logic
-                //moveVSlot_HAB();
-
-            }
-        }
+//        if ((UART_RingBuffer.end != UART_RingBuffer.start) && lastAction_Completed){
+//            parse_UART_RingBuffer(&packet);
+//            if (packet.command == 0x13){    //this needs a lot more logic
+//                //moveVSlot_HAB();
+//
+//            }
+        //}
     }
 }
 
