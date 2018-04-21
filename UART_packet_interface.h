@@ -38,6 +38,7 @@ typedef struct CommandPacket {
     uint8_t data[sizeof(int)];
 } commandPacket;
 
-void parse_UART_RingBuffer(commandPacket *packet);
+void parse_UART_RingBuffer(commandPacket * packet);
+void send_packet(commandPacket * packet);
 
 #endif /* UART_PACKET_INTERFACE_H_ */
