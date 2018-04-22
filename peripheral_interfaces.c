@@ -19,12 +19,14 @@
 #include "peripheral_interfaces.h"
 
 uint8_t enable_stepper(int port, int pin){
-    MAP_GPIO_setOutputHighOnPin(port, pin);
+    //Enable is inverted
+    MAP_GPIO_setOutputLowOnPin(port, pin);
     return 0;
 }
 
 uint8_t disable_stepper(int port, int pin){
-    MAP_GPIO_setOutputLowOnPin(port, pin);
+    //Enable is inverted
+    MAP_GPIO_setOutputHighOnPin(port, pin);
     return 0;
 }
 

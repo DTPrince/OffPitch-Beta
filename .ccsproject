@@ -14,4 +14,5 @@
 	<templateProperties value="id=timer_a_pwm_mode_MSP_EXP432P401R_nortos_ccs.projectspec.timer_a_pwm_mode_MSP_EXP432P401R_nortos_ccs,buildProfile=release,isHybrid=true,"/>
 	<origin value="/home/aetas/OffPitch-Beta"/>
 	<filesToOpen value=""/>
+	<isTargetManual value="false"/>
 </projectOptions>

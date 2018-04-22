@@ -17,34 +17,11 @@
 #include "UART_packet_interface.h"
 #include "peripheral_interfaces.h"
 #include "command_functions.h"
+#include "Board.h"
 #if DEBUG_LEVEL > 0
 #include "printf.h"
 #endif
 
-/* Timer_A PWM Configuration Parameter */
-Timer_A_PWMConfig pwmConfig =
-{
-        TIMER_A_CLOCKSOURCE_SMCLK,
-        TIMER_A_CLOCKSOURCE_DIVIDER_1,
-        150, // 40 = ~1.5Khz. 120 = 529Hz
-        TIMER_A_CAPTURECOMPARE_REGISTER_1,
-        TIMER_A_OUTPUTMODE_RESET_SET,
-        75
-};
-
-/* UART Config */
-const eUSCI_UART_Config uartConfig =
-{
-        EUSCI_A_UART_CLOCKSOURCE_SMCLK,          // SMCLK Clock Source
-        78,                                      // BRDIV = 78
-        2,                                       // UCxBRF = 2
-        0,                                       // UCxBRS = 0
-        EUSCI_A_UART_NO_PARITY,                  // No Parity
-        EUSCI_A_UART_LSB_FIRST,                  // LSB First
-        EUSCI_A_UART_ONE_STOP_BIT,               // One stop bit
-        EUSCI_A_UART_MODE,                       // UART mode
-        EUSCI_A_UART_OVERSAMPLING_BAUDRATE_GENERATION  // Oversampling
-};
 
 /* Initialize function
  * Sets the pinmodes, timer functions (PWM included), and ADC
@@ -59,6 +36,9 @@ void HALT();
 int main(void) {
 
     //initializeSettings();
+//    Board_initGeneral();
+    //ADC_init();
+    initSettings();
 
     commandPacket packet;
     commandPacket packet_previous;
@@ -83,7 +63,6 @@ int main(void) {
 
         //check if the two pointers are equal and that the MCU is done handling the last packet command.
         // if they are not equal then there is data in the ring buffer
-<<<<<<< HEAD
 //        if ((UART_RingBuffer.end != UART_RingBuffer.start) && lastAction_Completed){
 //            parse_UART_RingBuffer(&packet);
 //            if (packet.command == 0x13){    //this needs a lot more logic
@@ -91,7 +70,7 @@ int main(void) {
 //
 //            }
         //}
-=======
+
         if ((UART_RingBuffer.end != UART_RingBuffer.start) && lastAction_Completed){
             lastAction_Completed = false;
             parse_UART_RingBuffer(&packet);
@@ -289,19 +268,18 @@ int main(void) {
             lastAction_Completed = true;
             packet_previous = packet;
         }
->>>>>>> f054598b561ee47a1139614a87e0f242308ee93c
     }
 }
 
-void initializeSettings(){
-    /* Halting the watchdog */
+/*void initializeSettings(){
+     Halting the watchdog
     MAP_WDT_A_holdTimer();
 
 
-    /* Configuring P2.3 as output */
+     Configuring P2.3 as output
     //DIRECTION
 //    MAP_GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN3);
-    /* Configuring P1.7 as output */
+     Configuring P1.7 as output
     //ENABLE
 //    MAP_GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN7);
     //Green DIR=HIGH LED
@@ -311,16 +289,16 @@ void initializeSettings(){
     //Red EN=HIGH (disabled) LED
 //    MAP_GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0);
 
-    /* Setting MCLK to REFO at 128Khz for LF mode
-     * Setting SMCLK to 64Khz */
+     Setting MCLK to REFO at 128Khz for LF mode
+     * Setting SMCLK to 64Khz
     MAP_CS_setReferenceOscillatorFrequency(CS_REFO_128KHZ);//
     MAP_CS_initClockSignal(CS_MCLK, CS_REFOCLK_SELECT, CS_CLOCK_DIVIDER_1);
     MAP_CS_initClockSignal(CS_SMCLK, CS_REFOCLK_SELECT, CS_CLOCK_DIVIDER_2);
     MAP_PCM_setPowerState(PCM_AM_LF_VCORE0);
 
 
-    /* Configuring GPIO2.4 as peripheral output for PWM  and P6.7 for button
-     * interrupt */
+     Configuring GPIO2.4 as peripheral output for PWM  and P6.7 for button
+     * interrupt
     MAP_GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P2, GPIO_PIN4,
             GPIO_PRIMARY_MODULE_FUNCTION);
     MAP_GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P1, GPIO_PIN1 | GPIO_PIN4);
@@ -328,22 +306,22 @@ void initializeSettings(){
     MAP_GPIO_enableInterrupt(GPIO_PORT_P1, GPIO_PIN1 | GPIO_PIN4);
 
 
-    /* Selecting P1.2 and P1.3 in UART mode */
+     Selecting P1.2 and P1.3 in UART mode
     MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1,
             GPIO_PIN2 | GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
 
-    /* Setting DCO to 12MHz */
+     Setting DCO to 12MHz
     CS_setDCOCenteredFrequency(CS_DCO_FREQUENCY_12);
 
-    /* Configuring Timer_A to have a period of approximately 500ms and
-     * an initial duty cycle of 10% of that (3200 ticks)  */
+     Configuring Timer_A to have a period of approximately 500ms and
+     * an initial duty cycle of 10% of that (3200 ticks)
     MAP_Timer_A_generatePWM(TIMER_A0_BASE, &pwmConfig);
 
-    /* Enable UART module */
-    MAP_UART_initModule(EUSCI_A0_BASE, &uartConfig);
+     Enable UART module
+    //UART_initModule(EUSCI_A0_BASE, UART_config);
     MAP_UART_enableModule(EUSCI_A0_BASE);
 
-    /* Enabling interrupts and starting the watchdog timer */
+     Enabling interrupts and starting the watchdog timer
     MAP_UART_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
     MAP_Interrupt_enableInterrupt(INT_EUSCIA0);
 
@@ -367,7 +345,7 @@ void initializeSettings(){
     MAP_GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN1);
     //Blue LED=LOW for DIR=HIGH.
     MAP_GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN2);
-}
+}*/
 
 /* Port1 ISR - This ISR will progressively step up the duty cycle of the PWM
  * on a button press
