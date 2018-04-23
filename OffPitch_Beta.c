@@ -18,6 +18,7 @@
 #include "peripheral_interfaces.h"
 #include "command_functions.h"
 #include "Board.h"
+#include "init.h"
 #if DEBUG_LEVEL > 0
 #include "printf.h"
 #endif
@@ -270,82 +271,6 @@ int main(void) {
         }
     }
 }
-
-/*void initializeSettings(){
-     Halting the watchdog
-    MAP_WDT_A_holdTimer();
-
-
-     Configuring P2.3 as output
-    //DIRECTION
-//    MAP_GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN3);
-     Configuring P1.7 as output
-    //ENABLE
-//    MAP_GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN7);
-    //Green DIR=HIGH LED
-//    MAP_GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN1);
-    //Blue DIR=LOW LED
-//    MAP_GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN2);
-    //Red EN=HIGH (disabled) LED
-//    MAP_GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0);
-
-     Setting MCLK to REFO at 128Khz for LF mode
-     * Setting SMCLK to 64Khz
-    MAP_CS_setReferenceOscillatorFrequency(CS_REFO_128KHZ);//
-    MAP_CS_initClockSignal(CS_MCLK, CS_REFOCLK_SELECT, CS_CLOCK_DIVIDER_1);
-    MAP_CS_initClockSignal(CS_SMCLK, CS_REFOCLK_SELECT, CS_CLOCK_DIVIDER_2);
-    MAP_PCM_setPowerState(PCM_AM_LF_VCORE0);
-
-
-     Configuring GPIO2.4 as peripheral output for PWM  and P6.7 for button
-     * interrupt
-    MAP_GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P2, GPIO_PIN4,
-            GPIO_PRIMARY_MODULE_FUNCTION);
-    MAP_GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P1, GPIO_PIN1 | GPIO_PIN4);
-    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P1, GPIO_PIN1 | GPIO_PIN4);
-    MAP_GPIO_enableInterrupt(GPIO_PORT_P1, GPIO_PIN1 | GPIO_PIN4);
-
-
-     Selecting P1.2 and P1.3 in UART mode
-    MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1,
-            GPIO_PIN2 | GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
-
-     Setting DCO to 12MHz
-    CS_setDCOCenteredFrequency(CS_DCO_FREQUENCY_12);
-
-     Configuring Timer_A to have a period of approximately 500ms and
-     * an initial duty cycle of 10% of that (3200 ticks)
-    MAP_Timer_A_generatePWM(TIMER_A0_BASE, &pwmConfig);
-
-     Enable UART module
-    //UART_initModule(EUSCI_A0_BASE, UART_config);
-    MAP_UART_enableModule(EUSCI_A0_BASE);
-
-     Enabling interrupts and starting the watchdog timer
-    MAP_UART_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
-    MAP_Interrupt_enableInterrupt(INT_EUSCIA0);
-
-    //enable as needed. Pretty much just for capacitive sensors to avoid polling
-    MAP_Interrupt_enableInterrupt(INT_PORT1);
-//    MAP_Interrupt_enableInterrupt(INT_PORT2);
-//    MAP_Interrupt_enableInterrupt(INT_PORT3);
-//    MAP_Interrupt_enableInterrupt(INT_PORT4);
-//    MAP_Interrupt_enableInterrupt(INT_PORT5);
-//    MAP_Interrupt_enableInterrupt(INT_PORT6);
-    MAP_Interrupt_enableSleepOnIsrExit();
-    MAP_Interrupt_enableMaster();
-
-    //EN should be HIGH for disable.
-    MAP_GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN7);
-    //Turn on Red LED for disable notifier
-    MAP_GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN0);
-    //DIR should be whatever because we don;t know which way is which
-    MAP_GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN3);
-    //Turn on Green LED for DIR=HIGH
-    MAP_GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN1);
-    //Blue LED=LOW for DIR=HIGH.
-    MAP_GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN2);
-}*/
 
 /* Port1 ISR - This ISR will progressively step up the duty cycle of the PWM
  * on a button press

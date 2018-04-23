@@ -10,7 +10,7 @@
 
 /* Timer_A PWM Configuration Parameter */
 // Top stepper
-Timer_A_PWMConfig pwmConfigA0 =
+Timer_A_PWMConfig pwmConfigA01 =
 {
         TIMER_A_CLOCKSOURCE_SMCLK,
         TIMER_A_CLOCKSOURCE_DIVIDER_1,
@@ -21,18 +21,18 @@ Timer_A_PWMConfig pwmConfigA0 =
 };
 
 // Bottom stepper
-Timer_A_PWMConfig pwmConfigA1 =
+Timer_A_PWMConfig pwmConfigA03 =
 {
         TIMER_A_CLOCKSOURCE_SMCLK,
         TIMER_A_CLOCKSOURCE_DIVIDER_1,
         120, // 40 = ~1.5Khz. 120 = 529Hz
-        TIMER_A_CAPTURECOMPARE_REGISTER_1,
+        TIMER_A_CAPTURECOMPARE_REGISTER_3,
         TIMER_A_OUTPUTMODE_RESET_SET,
         60
 };
 
 //Experiment stepper
-Timer_A_PWMConfig pwmConfigA2 =
+Timer_A_PWMConfig pwmConfigA21 =
 {
         TIMER_A_CLOCKSOURCE_SMCLK,
         TIMER_A_CLOCKSOURCE_DIVIDER_1,
@@ -126,29 +126,50 @@ void initSettings(){
     GPIO_setAsPeripheralModuleFunctionOutputPin(PWM_VSLOT_TOP,
                 GPIO_PRIMARY_MODULE_FUNCTION);
 
+//    GPIO_setAsPeripheralModuleFunctionOutputPin(PWM_VSLOT_TOP,
+//                GPIO_PRIMARY_MODULE_FUNCTION);
+
     GPIO_setAsPeripheralModuleFunctionOutputPin(PWM_VSLOT_BOT,
                 GPIO_PRIMARY_MODULE_FUNCTION);
 
     GPIO_setAsPeripheralModuleFunctionOutputPin(PWM_EXP,
                 GPIO_PRIMARY_MODULE_FUNCTION);
 
-    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P2, GPIO_PIN5,
-                GPIO_PRIMARY_MODULE_FUNCTION);
+    /* Setting MCLK to REFO at 128Khz for LF mode
+     * Setting SMCLK to 64Khz */
+//    MAP_CS_setReferenceOscillatorFrequency(CS_REFO_128KHZ);//
+//    MAP_CS_initClockSignal(CS_MCLK, CS_REFOCLK_SELECT, CS_CLOCK_DIVIDER_1);
+//    MAP_CS_initClockSignal(CS_SMCLK, CS_REFOCLK_SELECT, CS_CLOCK_DIVIDER_2);
+//    MAP_PCM_setPowerState(PCM_AM_LF_VCORE0);
 
-    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P2, GPIO_PIN6,
-                GPIO_PRIMARY_MODULE_FUNCTION);
-
-    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P2, GPIO_PIN7,
-                GPIO_PRIMARY_MODULE_FUNCTION);
-
-    Timer_A_generatePWM(TIMER_A0_BASE, &pwmConfigA0);
-    Timer_A_generatePWM(TIMER_A1_BASE, &pwmConfigA1);
-    Timer_A_generatePWM(TIMER_A2_BASE, &pwmConfigA2);
-    Timer_A_generatePWM(TIMER_A3_BASE, &pwmConfigA2);
+    /* Selecting P1.2 and P1.3 in UART mode */
+    MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1,
+            GPIO_PIN2 | GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
 
     CS_setDCOCenteredFrequency(CS_DCO_FREQUENCY_12);
 
+    Timer_A_generatePWM(TIMER_A0_BASE, &pwmConfigA01);
+    Timer_A_generatePWM(TIMER_A0_BASE, &pwmConfigA03);
+    Timer_A_generatePWM(TIMER_A2_BASE, &pwmConfigA21);
 
+
+    /* Enable UART module */
+    //UART_initModule(EUSCI_A0_BASE, UART_config);
+    UART_enableModule(EUSCI_A0_BASE);
+
+    /* Enabling interrupts and starting the watchdog timer */
+    UART_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
+    Interrupt_enableInterrupt(INT_EUSCIA0);
+
+    //enable as needed. Pretty much just for capacitive sensors to avoid polling
+    Interrupt_enableInterrupt(INT_PORT1);
+//    MAP_Interrupt_enableInterrupt(INT_PORT2);
+//    MAP_Interrupt_enableInterrupt(INT_PORT3);
+//    MAP_Interrupt_enableInterrupt(INT_PORT4);
+//    MAP_Interrupt_enableInterrupt(INT_PORT5);
+//    MAP_Interrupt_enableInterrupt(INT_PORT6);
+    Interrupt_enableSleepOnIsrExit();
+    Interrupt_enableMaster();
 
     /* Configuring P2.3 as output */
     //DIRECTION
@@ -163,48 +184,6 @@ void initSettings(){
     //Red EN=HIGH (disabled) LED
 //    MAP_GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0);
 
-    /* Setting MCLK to REFO at 128Khz for LF mode
-     * Setting SMCLK to 64Khz */
-//    MAP_CS_setReferenceOscillatorFrequency(CS_REFO_128KHZ);//
-//    MAP_CS_initClockSignal(CS_MCLK, CS_REFOCLK_SELECT, CS_CLOCK_DIVIDER_1);
-//    MAP_CS_initClockSignal(CS_SMCLK, CS_REFOCLK_SELECT, CS_CLOCK_DIVIDER_2);
-//    MAP_PCM_setPowerState(PCM_AM_LF_VCORE0);
-//
-//
-//    /* Configuring GPIO2.4 as peripheral output for PWM  and P6.7 for button
-//     * interrupt */
-//    MAP_GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P2, GPIO_PIN4,
-//            GPIO_PRIMARY_MODULE_FUNCTION);
-//
-//    /* Selecting P1.2 and P1.3 in UART mode */
-//    MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1,
-//            GPIO_PIN2 | GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
-//
-//    /* Setting DCO to 12MHz */
-//    CS_setDCOCenteredFrequency(CS_DCO_FREQUENCY_12);
-//
-//    /* Configuring Timer_A to have a period of approximately 500ms and
-//     * an initial duty cycle of 10% of that (3200 ticks)  */
-//    MAP_Timer_A_generatePWM(TIMER_A0_BASE, &pwmConfig);
-//
-//    /* Enable UART module */
-//    //UART_initModule(EUSCI_A0_BASE, UART_config);
-//    MAP_UART_enableModule(EUSCI_A0_BASE);
-//
-//    /* Enabling interrupts and starting the watchdog timer */
-//    MAP_UART_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
-//    MAP_Interrupt_enableInterrupt(INT_EUSCIA0);
-//
-//    //enable as needed. Pretty much just for capacitive sensors to avoid polling
-//    MAP_Interrupt_enableInterrupt(INT_PORT1);
-////    MAP_Interrupt_enableInterrupt(INT_PORT2);
-////    MAP_Interrupt_enableInterrupt(INT_PORT3);
-////    MAP_Interrupt_enableInterrupt(INT_PORT4);
-////    MAP_Interrupt_enableInterrupt(INT_PORT5);
-////    MAP_Interrupt_enableInterrupt(INT_PORT6);
-//    MAP_Interrupt_enableSleepOnIsrExit();
-//    MAP_Interrupt_enableMaster();
-//
 //    //EN should be HIGH for disable.
 //    MAP_GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN7);
 //    //Turn on Red LED for disable notifier
