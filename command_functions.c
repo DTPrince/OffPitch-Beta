@@ -66,16 +66,22 @@ uint8_t moveVSlot_HAB() {
 #endif
     case TABLE_POSITION_CEN:
         //Set direction for required stepper to move HAB-side from center
-        set_stepperDirection(VSLOT_STEPPER_TOP_DIR, (bool)STEPPER_DIR_HAB);
-        //enable stepper required to move from center to HAB
-        //either stepper can work but I am defining TOP as the "move-hab-side" stepper
+        //Top stepper needs to have DIR = HIGH
+        set_stepperDirection(VSLOT_STEPPER_TOP_DIR, (bool)STEPPER_TOP_DIR_HAB);
+        //enable top stepper to move HAB-side
         enable_stepper(VSLOT_STEPPER_TOP_EN);
-        //Hall-effect goes low when magnet is sensed
+        enable_stepper(VSLOT_STEPPER_BOT_EN);
 
-        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP) == 0) {
-            //nada
+        //Hall-effect goes low when magnet is sensed
+        enable_PWM(PWM_VSLOT_TOP);
+
+        while(GPIO_getInputPinValue(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_LOW){
+        }
+        while(GPIO_getInputPinValue(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_HIGH){
         }
         disable_stepper(VSLOT_STEPPER_TOP_EN);
+        disable_stepper(VSLOT_STEPPER_BOT_EN);
+        disable_PWM(PWM_VSLOT_TOP);
         tablePosition = TABLE_POSITION_HAB;
         return 0;
     case TABLE_POSITION_HAB:
@@ -99,18 +105,40 @@ uint8_t moveVSlot_SPC() {
         return 1;
 #endif
     case TABLE_POSITION_CEN:
-        //Set direction of bottom stepper to move SPC-side from center
-        set_stepperDirection(VSLOT_STEPPER_BOT_DIR, (bool)STEPPER_DIR_SPC);
-        //Enable stepper motor now that everything is set
+        //first send the gantry plate to space-side
         enable_stepper(VSLOT_STEPPER_BOT_EN);
+        set_stepperDirection(VSLOT_STEPPER_BOT_DIR, (bool)STEPPER_BOT_DIR_SPC);
+        enable_PWM(PWM_VSLOT_BOT);
+        while (get_DIOPinState(HALL_SENSE_VSLOT_BOT) == GPIO_INPUT_PIN_LOW) {
+            //nada
+        }
+        while (get_DIOPinState(HALL_SENSE_VSLOT_BOT) == GPIO_INPUT_PIN_HIGH) {
+            //nada
+        }
+        //disable bottom movement
+        disable_PWM(PWM_VSLOT_BOT);
+
+        //now move actual table to SPC-side
+        //Set direction of bottom stepper to move SPC-side from center
+        // Top stepper needs to be set low for this
+        set_stepperDirection(VSLOT_STEPPER_TOP_DIR, (bool)STEPPER_TOP_DIR_SPC);
+        //Enable stepper motor now that everything is set
+        enable_stepper(VSLOT_STEPPER_TOP_EN);
+        //turn on PWM
+        enable_PWM(PWM_VSLOT_TOP);
         //wait for the hall-effect detection
-        while (get_DIOPinState(HALL_SENSE_VSLOT_BOT) == 0) {
+        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_LOW) {
+            //nada
+        }
+        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_HIGH) {
             //nada
         }
         //job done, disable stepper.
+        disable_stepper(VSLOT_STEPPER_TOP_EN);
         disable_stepper(VSLOT_STEPPER_BOT_EN);
+        disable_PWM(PWM_VSLOT_TOP);
         //update position
-        tablePosition = TABLE_POSITION_HAB;
+        tablePosition = TABLE_POSITION_SPC;
         return 0;
     case TABLE_POSITION_SPC:
         return 0;
@@ -124,15 +152,22 @@ uint8_t moveVSlot_CEN() {
     switch(tablePosition){
     case TABLE_POSITION_HAB:
         //Set direction of bottom stepper to move SPC-side from center
-        set_stepperDirection(VSLOT_STEPPER_TOP_DIR, (bool)STEPPER_DIR_SPC);
+        set_stepperDirection(VSLOT_STEPPER_TOP_DIR, (bool)STEPPER_TOP_DIR_SPC);
         //enable stepper movement
         enable_stepper(VSLOT_STEPPER_TOP_EN);
+        enable_stepper(VSLOT_STEPPER_BOT_EN);
+        enable_PWM(PWM_VSLOT_TOP);
         //poll for the hall-effect sensor
-        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP) == 0) {
+        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_LOW) {
+            //nada
+        }
+        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_HIGH) {
             //nada
         }
         //disable movement
         disable_stepper(VSLOT_STEPPER_TOP_EN);
+        disable_stepper(VSLOT_STEPPER_BOT_EN);
+        disable_PWM(PWM_VSLOT_TOP);
         //update position
         tablePosition = TABLE_POSITION_CEN;
         return 0;
@@ -141,21 +176,46 @@ uint8_t moveVSlot_CEN() {
         return 0;
     case TABLE_POSITION_SPC:
         //Set direction of bottom stepper to move SPC-side from center
-        set_stepperDirection(VSLOT_STEPPER_BOT_DIR, (bool)STEPPER_DIR_HAB);
+        set_stepperDirection(VSLOT_STEPPER_TOP_DIR, (bool)STEPPER_TOP_DIR_HAB);
         //enable stepper movement
+        enable_stepper(VSLOT_STEPPER_TOP_EN);
         enable_stepper(VSLOT_STEPPER_BOT_EN);
+
+        enable_PWM(PWM_VSLOT_TOP);
         //poll for the hall-effect sensor
-        while (get_DIOPinState(HALL_SENSE_VSLOT_BOT) == 0) {
+        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_LOW) {
+                    //wait
+        }
+        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_HIGH) {
+            //wait
+        }
+        //now that the table top has moved center, move the gantry plate to the HAB-side as is expected of the rest of the program
+        //disable movement
+        disable_stepper(VSLOT_STEPPER_TOP_EN);
+        disable_PWM(PWM_VSLOT_TOP);
+
+        //set Bottom Movement
+        set_stepperDirection(VSLOT_STEPPER_BOT_DIR, (bool)STEPPER_BOT_DIR_HAB);
+        //enable bottom stepper PWM for movement
+        enable_PWM(PWM_VSLOT_BOT);
+        while (get_DIOPinState(HALL_SENSE_VSLOT_BOT) == GPIO_INPUT_PIN_LOW) {
             //nada
         }
-        //disable movement
+        while (get_DIOPinState(HALL_SENSE_VSLOT_BOT) == GPIO_INPUT_PIN_HIGH) {
+            //nada
+        }
         disable_stepper(VSLOT_STEPPER_BOT_EN);
+        disable_PWM(PWM_VSLOT_BOT);
         //update position
         tablePosition = TABLE_POSITION_CEN;
         return 0;
     default:
         return 1;
     }
+}
+
+uint8_t VSLOT_findCenter(){
+    return 0;
 }
 
 uint8_t clampExperiment() {

@@ -71,6 +71,7 @@ hallEffectSensors heSense;
 
 /* UART Debugging Flag */
 #define UART_DEBUG_FLAG                         0xFF
+#define UART_BASE                               EUSCI_A0_BASE
 
 /* UART packet types */
 #define UART_TYPE_CONTROL                       0x00    // 0b00000000
@@ -101,11 +102,13 @@ hallEffectSensors heSense;
 #define UART_COMMAND_DATA_TABLE_CAP_SENSE       0x20
 #define UART_COMMAND_DATA_PLATE_CAP_SENSE       0x21
 #define UART_COMMAND_DATA_TABLE_FORCE_SENSE     0x22
-#define UART_COMMAND_DATA_HAB_DOOR_HE_SENSE     0x23
-#define UART_COMMAND_DATA_SPC_DOOR_HE_SENSE     0x24
+#define UART_COMMAND_DATA_TABLE_POSITION        0x23
+#define UART_COMMAND_DATA_PRESSURE              0x24
 #define UART_COMMAND_DATA_HAB_HINGE_HE_SENSE    0x25
 #define UART_COMMAND_DATA_SPC_HINGE_HE_SENSE    0x26
-#define UART_COMMAND_DATA_TEMPERATURE           0x27
+#define UART_COMMAND_DEPRESSUREIZE              0x27
+#define UART_COMMAND_PRESSUREIZE                0x28
+
 
 /* Packet byte sizes */
 #define UART_COMMAND_PACKET_TYPECMD_SIZE        1
@@ -120,11 +123,11 @@ hallEffectSensors heSense;
 // Hall-Effect sensors //
 //Top VSlot HE sensor
 #define HALL_SENSE_VSLOT_TOP_PORT               GPIO_PORT_P3
-#define HALL_SENSE_VSLOT_TOP_PIN                GPIO_PIN2
+#define HALL_SENSE_VSLOT_TOP_PIN                GPIO_PIN3
 #define HALL_SENSE_VSLOT_TOP                    HALL_SENSE_VSLOT_TOP_PORT, HALL_SENSE_VSLOT_TOP_PIN
 //Bottom VSlot HE sensor
 #define HALL_SENSE_VSLOT_BOT_PORT               GPIO_PORT_P3
-#define HALL_SENSE_VSLOT_BOT_PIN                GPIO_PIN3
+#define HALL_SENSE_VSLOT_BOT_PIN                GPIO_PIN2
 #define HALL_SENSE_VSLOT_BOT                    HALL_SENSE_VSLOT_BOT_PORT, HALL_SENSE_VSLOT_BOT_PIN
 
 //Door closed HE Sensor - HAB
@@ -233,7 +236,7 @@ hallEffectSensors heSense;
 
 // PWM
 #define PWM_VSLOT_TOP_PORT                      GPIO_PORT_P2
-#define PWM_VSLOT_TOP_PIN                       GPIO_PIN3
+#define PWM_VSLOT_TOP_PIN                       GPIO_PIN6
 #define PWM_VSLOT_TOP                           PWM_VSLOT_TOP_PORT, PWM_VSLOT_TOP_PIN
 
 #define PWM_VSLOT_BOT_PORT                      GPIO_PORT_P2
@@ -254,8 +257,11 @@ hallEffectSensors heSense;
 
 /* Control Defines */
 //VSlot stepper direction controls
-#define STEPPER_DIR_HAB                         1
-#define STEPPER_DIR_SPC                         0
+#define STEPPER_TOP_DIR_HAB                     1
+#define STEPPER_TOP_DIR_SPC                     0
+
+#define STEPPER_BOT_DIR_HAB                     0
+#define STEPPER_BOT_DIR_SPC                     1
 //Experiment tray stepper direction controls
 #define STEPPER_DIR_CLOSE                       1
 #define STEPPER_DIR_OPEN                        0

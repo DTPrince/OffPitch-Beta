@@ -15,6 +15,8 @@ uint8_t moveVSlot_SPC();
 
 uint8_t moveVSlot_CEN();
 
+uint8_t VSLOT_findCenter();
+
 uint8_t clampExperiment();
 
 uint8_t releaseExperiment();

@@ -27,11 +27,11 @@ void parse_UART_RingBuffer(commandPacket *packet){
     if (UART_RingBuffer.start + 1 == BUFFER_SIZE){
 #if DEBUG_LEVEL > 2 //only verbose
         //Send debug flag over UART
-        MAP_UART_transmitData(EUSCI_A0_BASE, (char)UART_DEBUG_FLAG);
+        MAP_UART_transmitData(UART_BASE, (char)UART_DEBUG_FLAG);
 
         //Send string message
         // REQUIRED: terminate with \n newline. This is the 'end of message' key to look for
-        printf(EUSCI_A0_BASE, "Ring buffer start pointer reset before fetching packet length\n");
+        printf(UART_BASE, "Ring buffer start pointer reset before fetching packet length\n");
 #endif
         UART_RingBuffer.start = 0;
         // The length is grabbed in the conditional to allow incrementing the start pointer normally in the else statement.
@@ -54,20 +54,22 @@ void parse_UART_RingBuffer(commandPacket *packet){
 //My kingdom for code folding...
 #if DEBUG_LEVEL > 2 //only verbose
             //Send debug flag over UART
-            MAP_UART_transmitData(EUSCI_A0_BASE, (char)UART_DEBUG_FLAG);
+            MAP_UART_transmitData(UART_BASE, (char)UART_DEBUG_FLAG);
 
             //Send string message
             // REQUIRED: terminate with \n newline. This is the 'end of message' key to look for
-            printf(EUSCI_A0_BASE, "Ring buffer start pointer reset before fetching packet data. i:%d\n", (char)i);
+            printf(UART_BASE, "Ring buffer start pointer reset before fetching packet data. i:%d\n", (char)i);
 #endif
             // reset pointer location if it is
             UART_RingBuffer.start = 0;
-            packet->data[i] = UART_RingBuffer.data[UART_RingBuffer.start + 1 + i];
+            if (UART_RingBuffer.data[UART_RingBuffer.start + 1 + i] != '\n')
+                packet->data[i] = UART_RingBuffer.data[UART_RingBuffer.start + 1 + i];
 
         } else {
             //otherwise proceed normally and increment pointer/fetch data
             UART_RingBuffer.start++;
-            packet->data[i] = UART_RingBuffer.data[UART_RingBuffer.start + 1 + i];
+            if (UART_RingBuffer.data[UART_RingBuffer.start + 1 + i] != '\n')
+                packet->data[i] = UART_RingBuffer.data[UART_RingBuffer.start + 1 + i];
         }
     }
 
@@ -81,10 +83,11 @@ void parse_UART_RingBuffer(commandPacket *packet){
 }
 
 void send_packet(commandPacket * packet){
-    MAP_UART_transmitData(EUSCI_A0_BASE, packet->type);
-    MAP_UART_transmitData(EUSCI_A0_BASE, packet->command);
-    MAP_UART_transmitData(EUSCI_A0_BASE, packet->length);
+    MAP_UART_transmitData(UART_BASE, packet->type);
+    MAP_UART_transmitData(UART_BASE, packet->command);
+    MAP_UART_transmitData(UART_BASE, packet->length);
     uint8_t iter = 0;
     for (iter = 0; iter < packet->length; iter++)
-        MAP_UART_transmitData(EUSCI_A0_BASE, packet->data[iter]);
+        MAP_UART_transmitData(UART_BASE, packet->data[iter]);
+    MAP_UART_transmitData(UART_BASE, '\n');
 }

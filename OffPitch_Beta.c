@@ -18,7 +18,6 @@
 #include "peripheral_interfaces.h"
 #include "command_functions.h"
 #include "Board.h"
-#include "init.h"
 #if DEBUG_LEVEL > 0
 #include "printf.h"
 #endif
@@ -40,6 +39,8 @@ int main(void) {
 //    Board_initGeneral();
     //ADC_init();
     initSettings();
+    GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN0);
+    GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN0);
 
     commandPacket packet;
     commandPacket packet_previous;
@@ -60,17 +61,16 @@ int main(void) {
     /* Sleeping when not in use */
     while (1){
         //sleep
-        MAP_PCM_gotoLPM0();
+        PCM_gotoLPM0();
 
         //check if the two pointers are equal and that the MCU is done handling the last packet command.
-        // if they are not equal then there is data in the ring buffer
-//        if ((UART_RingBuffer.end != UART_RingBuffer.start) && lastAction_Completed){
-//            parse_UART_RingBuffer(&packet);
-//            if (packet.command == 0x13){    //this needs a lot more logic
-//                //moveVSlot_HAB();
-//
-//            }
-        //}
+        //if they are not equal then there is data in the ring buffer
+        if ((UART_RingBuffer.end != UART_RingBuffer.start) && lastAction_Completed){
+            parse_UART_RingBuffer(&packet);
+            if (packet.command == 'a'){    //this needs a lot more logic
+                moveVSlot_HAB();
+            }
+        }
 
         if ((UART_RingBuffer.end != UART_RingBuffer.start) && lastAction_Completed){
             lastAction_Completed = false;
@@ -119,12 +119,13 @@ int main(void) {
                 if (packet.type == UART_TYPE_ACK){
                     //add the command return to data
                     packet.length = 1;
-                    packet.data[0] = moveVSlot_HAB();
+                    packet.data[0] = 1;//moveVSlot_HAB();
                     //send the packet
                     send_packet(&packet);
-                } else {
-                    moveVSlot_HAB();
-                }
+                    GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN0);
+                } //else {
+//                    moveVSlot_HAB();
+//                }
                 break;
 
             case UART_COMMAND_MV_TABLE_CEN:
@@ -132,12 +133,14 @@ int main(void) {
                 if (packet.type == UART_TYPE_ACK){
                     //add the command return to data
                     packet.length = 1;
-                    packet.data[0] = moveVSlot_CEN();
+                    packet.data[0] = 1;//moveVSlot_CEN();
                     //send the packet
                     send_packet(&packet);
-                } else {
-                    moveVSlot_CEN();
-                }
+                    GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN0);
+
+                } //else {
+//                //    moveVSlot_CEN();
+//                }
                 break;
 
             case UART_COMMAND_MV_TABLE_SPC:
@@ -231,17 +234,6 @@ int main(void) {
                 packet.data[0] = (uint8_t)(forceValue & 0xFF);
                 break;
             }
-            case UART_COMMAND_DATA_HAB_DOOR_HE_SENSE:
-                packet.length = 1;
-                packet.data[0] = (uint8_t)get_plateCapSense();
-                send_packet(&packet);
-                break;
-
-            case UART_COMMAND_DATA_SPC_DOOR_HE_SENSE:
-                packet.length = 1;
-                packet.data[0] = (uint8_t)get_plateCapSense();
-                send_packet(&packet);
-                break;
 
             case UART_COMMAND_DATA_HAB_HINGE_HE_SENSE:
                 packet.length = 1;
@@ -255,7 +247,7 @@ int main(void) {
                 send_packet(&packet);
                 break;
 
-            case UART_COMMAND_DATA_TEMPERATURE:
+            case UART_COMMAND_DATA_PRESSURE:
                 packet.length = 1;
                 packet.data[0] = 0; //rand();
                 send_packet(&packet);
@@ -275,217 +267,231 @@ int main(void) {
 /* Port1 ISR - This ISR will progressively step up the duty cycle of the PWM
  * on a button press
  */
-void PORT1_IRQHandler(void){
-    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P1);
-    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P1, status);
+//void PORT1_IRQHandler(void){
+//    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P1);
+//    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P1, status);
+//
+//    //
+//    if (status & GPIO_PIN1) {
+//        //Toggle
+////        MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN7);
+////        MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN0);
+//    }
+//    if (status & GPIO_PIN4) {
+////        MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P2, GPIO_PIN3);
+////        MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P2, GPIO_PIN1);
+////        MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P2, GPIO_PIN2);
+//    }
+//    if (status & GPIO_PIN5) {
+//        if (GPIO_getInputPinValue(CAP_SENSE_TABLE_ONE) > 0)
+//            capSense.tableCapSense1 = true;
+//        else
+//            capSense.tableCapSense1 = false;
+//    }
+//    if (status & GPIO_PIN6) {
+//        if (GPIO_getInputPinValue(CAP_SENSE_TABLE_TWO) > 0)
+//            capSense.tableCapSense2 = true;
+//        else
+//            capSense.tableCapSense2 = false;
+//    }
+//    if (status & GPIO_PIN7) {
+//        if (GPIO_getInputPinValue(CAP_SENSE_MATE) > 0)
+//            capSense.plateCapSense = true;
+//        else
+//            capSense.plateCapSense = false;
+//    }
+//
+//}
 
-    //
-    if (status & GPIO_PIN1) {
-        //Toggle
-        MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN7);
-        MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN0);
-    }
-    if (status & GPIO_PIN4) {
-        MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P2, GPIO_PIN3);
-        MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P2, GPIO_PIN1);
-        MAP_GPIO_toggleOutputOnPin(GPIO_PORT_P2, GPIO_PIN2);
-    }
-    if (status & GPIO_PIN5) {
-        if (GPIO_getInputPinValue(CAP_SENSE_TABLE_ONE) > 0)
-            capSense.tableCapSense1 = true;
-        else
-            capSense.tableCapSense1 = false;
-    }
-    if (status & GPIO_PIN6) {
-        if (GPIO_getInputPinValue(CAP_SENSE_TABLE_TWO) > 0)
-            capSense.tableCapSense2 = true;
-        else
-            capSense.tableCapSense2 = false;
-    }
-    if (status & GPIO_PIN7) {
-        if (GPIO_getInputPinValue(CAP_SENSE_MATE) > 0)
-            capSense.plateCapSense = true;
-        else
-            capSense.plateCapSense = false;
-    }
+//void PORT2_IRQHandler(void){
+//    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P2);
+//    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P2, status);
+//
+//    if (status & GPIO_PIN1) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN2) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN3) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN4) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN5) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN6) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN7) {
+//        //do things
+//    }
+//}
 
-}
+//void PORT3_IRQHandler(void){
+//    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P3);
+//    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P3, status);
+//    if (status & GPIO_PIN1) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN2) {
+//        GPIO_interruptEdgeSelect(HALL_SENSE_VSLOT_TOP, GPIO_LOW_TO_HIGH_TRANSITION);
+//        if (GPIO_getInputPinValue(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_LOW){
+//            GPIO_interruptEdgeSelect(HALL_SENSE_VSLOT_TOP, GPIO_LOW_TO_HIGH_TRANSITION);
+//            heSense.vslot.top = true;
+//        } else {
+//            GPIO_interruptEdgeSelect(HALL_SENSE_VSLOT_TOP, GPIO_HIGH_TO_LOW_TRANSITION);
+//            heSense.vslot.top = false;
+//        }
+//    }
+//    if (status & GPIO_PIN3) {
+//       if (GPIO_getInputPinValue(HALL_SENSE_VSLOT_BOT) > 0)
+//           heSense.vslot.bot = false;
+//       else
+//           heSense.vslot.bot = true;
+//    }
+//    if (status & GPIO_PIN4) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN5) {
+//        if (GPIO_getInputPinValue(HALL_SENSE_DOOR_HAB) > 0)
+//            heSense.door.hab = false;
+//        else
+//            heSense.door.hab = true;
+//    }
+//    if (status & GPIO_PIN6) {
+//        if (GPIO_getInputPinValue(HALL_SENSE_DOOR_SPC) > 0)
+//            heSense.door.spc = false;
+//        else
+//            heSense.door.spc = true;
+//    }
+//    if (status & GPIO_PIN7) {
+//        if (GPIO_getInputPinValue(HALL_SENSE_HINGE_HAB) > 0)
+//            heSense.hinge.hab = false;
+//        else
+//            heSense.hinge.hab = true;
+//    }
+//}
 
-void PORT2_IRQHandler(void){
-    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P2);
-    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P2, status);
+//void PORT4_IRQHandler(void){
+//    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P4);
+//    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P4, status);
+//
+//    if (status & GPIO_PIN0) {
+//        if (GPIO_getInputPinValue(HALL_SENSE_HINGE_SPC) > 0)
+//            heSense.hinge.spc = false;
+//        else
+//            heSense.hinge.spc = true;
+//    }
+//    if (status & GPIO_PIN1) {
+//      //do things
+//    }
+//    if (status & GPIO_PIN2) {
+//       //do things
+//    }
+//    if (status & GPIO_PIN3) {
+//       //do things
+//    }
+//    if (status & GPIO_PIN4) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN5) {
+//       //do things
+//    }
+//    if (status & GPIO_PIN6) {
+//       //do things
+//    }
+//    if (status & GPIO_PIN7) {
+//       //do things
+//    }
+//}
 
-    if (status & GPIO_PIN1) {
-        //do things
-    }
-    if (status & GPIO_PIN2) {
-        //do things
-    }
-    if (status & GPIO_PIN3) {
-        //do things
-    }
-    if (status & GPIO_PIN4) {
-        //do things
-    }
-    if (status & GPIO_PIN5) {
-        //do things
-    }
-    if (status & GPIO_PIN6) {
-        //do things
-    }
-    if (status & GPIO_PIN7) {
-        //do things
-    }
-}
+//void PORT5_IRQHandler(void){
+//    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P5);
+//    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P5, status);
+//
+//    if (status & GPIO_PIN1) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN2) {
+//       //do things
+//    }
+//    if (status & GPIO_PIN3) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN4) {
+//         //do things
+//    }
+//    if (status & GPIO_PIN5) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN6) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN7) {
+//        //do things
+//    }
+//}
 
-void PORT3_IRQHandler(void){
-    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P3);
-    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P3, status);
-    if (status & GPIO_PIN1) {
-        //do things
-    }
-    if (status & GPIO_PIN2) {
-        if (GPIO_getInputPinValue(HALL_SENSE_VSLOT_TOP) > 0)
-            heSense.vslot.top = false;
-        else
-            heSense.vslot.top = true;
-    }
-    if (status & GPIO_PIN3) {
-       if (GPIO_getInputPinValue(HALL_SENSE_VSLOT_BOT) > 0)
-           heSense.vslot.bot = false;
-       else
-           heSense.vslot.bot = true;
-    }
-    if (status & GPIO_PIN4) {
-        //do things
-    }
-    if (status & GPIO_PIN5) {
-        if (GPIO_getInputPinValue(HALL_SENSE_DOOR_HAB) > 0)
-            heSense.door.hab = false;
-        else
-            heSense.door.hab = true;
-    }
-    if (status & GPIO_PIN6) {
-        if (GPIO_getInputPinValue(HALL_SENSE_DOOR_SPC) > 0)
-            heSense.door.spc = false;
-        else
-            heSense.door.spc = true;
-    }
-    if (status & GPIO_PIN7) {
-        if (GPIO_getInputPinValue(HALL_SENSE_HINGE_HAB) > 0)
-            heSense.hinge.hab = false;
-        else
-            heSense.hinge.hab = true;
-    }
-}
-
-void PORT4_IRQHandler(void){
-    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P4);
-    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P4, status);
-
-    if (status & GPIO_PIN0) {
-        if (GPIO_getInputPinValue(HALL_SENSE_HINGE_SPC) > 0)
-            heSense.hinge.spc = false;
-        else
-            heSense.hinge.spc = true;
-    }
-    if (status & GPIO_PIN1) {
-      //do things
-    }
-    if (status & GPIO_PIN2) {
-       //do things
-    }
-    if (status & GPIO_PIN3) {
-       //do things
-    }
-    if (status & GPIO_PIN4) {
-        //do things
-    }
-    if (status & GPIO_PIN5) {
-       //do things
-    }
-    if (status & GPIO_PIN6) {
-       //do things
-    }
-    if (status & GPIO_PIN7) {
-       //do things
-    }
-}
-
-void PORT5_IRQHandler(void){
-    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P5);
-    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P5, status);
-
-    if (status & GPIO_PIN1) {
-        //do things
-    }
-    if (status & GPIO_PIN2) {
-       //do things
-    }
-    if (status & GPIO_PIN3) {
-        //do things
-    }
-    if (status & GPIO_PIN4) {
-         //do things
-    }
-    if (status & GPIO_PIN5) {
-        //do things
-    }
-    if (status & GPIO_PIN6) {
-        //do things
-    }
-    if (status & GPIO_PIN7) {
-        //do things
-    }
-}
-
-void PORT6_IRQHandler(void){
-    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P6);
-    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P6, status);
-
-    if (status & GPIO_PIN1) {
-        //do things
-    }
-    if (status & GPIO_PIN2) {
-        //do things
-    }
-    if (status & GPIO_PIN3) {
-        //do things
-    }
-    if (status & GPIO_PIN4) {
-        //do things
-    }
-    if (status & GPIO_PIN5) {
-        //do things
-    }
-    if (status & GPIO_PIN6) {
-        //do things
-    }
-    if (status & GPIO_PIN7) {
-        //do things
-    }
-}
+//void PORT6_IRQHandler(void){
+//    uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P6);
+//    MAP_GPIO_clearInterruptFlag(GPIO_PORT_P6, status);
+//
+//    if (status & GPIO_PIN1) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN2) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN3) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN4) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN5) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN6) {
+//        //do things
+//    }
+//    if (status & GPIO_PIN7) {
+//        //do things
+//    }
+//}
 
 /* EUSCI A0 UART ISR - Fetches char from UART and stores in UART_RingBuffer for later */
 void EUSCIA0_IRQHandler(void){
     //fetch status register for interrupt data
-    uint32_t status = MAP_UART_getEnabledInterruptStatus(EUSCI_A0_BASE);
+    uint32_t status = MAP_UART_getEnabledInterruptStatus(UART_BASE);
 
     //clear interrupt flag
-    MAP_UART_clearInterruptFlag(EUSCI_A0_BASE, status);
+    UART_clearInterruptFlag(UART_BASE, status);
 
     //
     if(status & EUSCI_A_UART_RECEIVE_INTERRUPT_FLAG)
     {
-        char buffer_char = MAP_UART_receiveData(EUSCI_A0_BASE);
+        //UART_transmitData(UART_BASE, UART_receiveData(EUSCI_A0_BASE));
+        //GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN0);
+        char buffer_char = MAP_UART_receiveData(UART_BASE);
 #if DEBUG_LEVEL > 0
-        MAP_UART_transmitData(EUSCI_A0_BASE, buffer_char);
+        UART_transmitData(UART_BASE, buffer_char);
 #endif
 
         //Clean out spaces and formatting for the buffer
-        if (buffer_char != ('\n' || '\r' || '\t' || ' ')){
-            if (buffer_char == UART_COMMAND_HALT)
+        if (buffer_char != ('\r' || '\t' || ' ')){
+            //HALT command check. In interrupt to address before a holding action completes
+            if (buffer_char == UART_COMMAND_HALT || buffer_char == 'h')
                 HALT();
+
+            if (buffer_char == '1')
+                moveVSlot_HAB();
+            if (buffer_char == '2')
+                moveVSlot_CEN();
+            if (buffer_char == '3')
+                moveVSlot_SPC();
             //Loop around if at end of buffer
             if (UART_RingBuffer.end == BUFFER_SIZE){
                 UART_RingBuffer.end = 0;
@@ -494,11 +500,11 @@ void EUSCIA0_IRQHandler(void){
             if (UART_RingBuffer.end == UART_RingBuffer.start){
 #if DEBUG_LEVEL > 0
                 //Send debug flag over UART
-                MAP_UART_transmitData(EUSCI_A0_BASE, (char)UART_DEBUG_FLAG);
+                UART_transmitData(UART_BASE, (char)UART_DEBUG_FLAG);
 
                 //Send string message
                 // REQUIRED: terminate with \n newline. This is the 'end of message' key to look for
-//                printf(EUSCI_A0_BASE, "Ring buffer has overrun tail at: %d\n", (unsigned char)UART_RingBuffer.end);
+                printf(UART_BASE, "Ring buffer has overrun tail at: %d\n", (unsigned char)UART_RingBuffer.end);
 #endif
             }
             //Append data to ring buffer
@@ -510,7 +516,16 @@ void EUSCIA0_IRQHandler(void){
 }
 
 void HALT(){
+    // Top Stepper Enable (high = disabled)
+    GPIO_setOutputHighOnPin(VSLOT_STEPPER_TOP_EN);
+    // Bottom Stepper Enable (high = disabled)
+    GPIO_setOutputHighOnPin(VSLOT_STEPPER_BOT_EN);
+    // Experiment Stepper Enable (high = disabled)
+    GPIO_setOutputHighOnPin(EXP_STEPPER_EN);
 
+    disable_PWM(PWM_VSLOT_TOP);
+    disable_PWM(PWM_VSLOT_BOT);
+    disable_PWM(PWM_EXP);
 }
 
 
