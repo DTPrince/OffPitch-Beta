@@ -34,6 +34,7 @@ ringBuffer UART_RingBuffer;
 typedef struct CommandPacket {
     uint8_t type;
     uint8_t command;
+    uint8_t typeCommand;
     uint8_t length;
     uint8_t data[sizeof(int)];
 } commandPacket;

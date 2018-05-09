@@ -114,6 +114,10 @@ hallEffectSensors heSense;
 #define UART_COMMAND_PACKET_TYPECMD_SIZE        1
 #define UART_COMMAND_PACKET_LENGTH_SIZE         1
 
+#define PWM_COUNTER_VSLOT_TOP                   400
+#define PWM_COUNTER_VSLOT_BOT                   400
+#define PWM_COUNTER_EXP                         750
+
 /* Pin defines */
 //Serial
 #define COMMAND_SERIAL_PORT                     0
@@ -193,12 +197,12 @@ hallEffectSensors heSense;
 #define EXP_STEPPER_DIR                         EXP_STEPPER_DIR_PORT, EXP_STEPPER_DIR_PIN
 
 //Aventos switch controls
-#define SWITCH_DOOR_HAB_PORT                    GPIO_PORT_P2
-#define SWITCH_DOOR_HAB_PIN                     GPIO_PIN7
+#define SWITCH_DOOR_HAB_PORT                    GPIO_PORT_P3
+#define SWITCH_DOOR_HAB_PIN                     GPIO_PIN0
 #define SWITCH_DOOR_HAB                         SWITCH_DOOR_HAB_PORT, SWITCH_DOOR_HAB_PIN
 
-#define SWITCH_DOOR_SPC_PORT                    GPIO_PORT_P3
-#define SWITCH_DOOR_SPC_PIN                     GPIO_PIN0
+#define SWITCH_DOOR_SPC_PORT                    GPIO_PORT_P2
+#define SWITCH_DOOR_SPC_PIN                     GPIO_PIN7
 #define SWITCH_DOOR_SPC                         SWITCH_DOOR_SPC_PORT, SWITCH_DOOR_SPC_PIN
 
 // Relay Controls //
@@ -263,8 +267,8 @@ hallEffectSensors heSense;
 #define STEPPER_BOT_DIR_HAB                     0
 #define STEPPER_BOT_DIR_SPC                     1
 //Experiment tray stepper direction controls
-#define STEPPER_DIR_CLOSE                       1
-#define STEPPER_DIR_OPEN                        0
+#define STEPPER_EXP_DIR_CLOSE                   1
+#define STEPPER_EXP_DIR_OPEN                    0
 
 #define TABLE_CAP_SENSE_ONE                     0b01
 #define TABLE_CAP_SENSE_TWO                     0b10

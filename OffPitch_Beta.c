@@ -34,22 +34,24 @@ void HALT();
 //1.7 : EN
 
 int main(void) {
-
-    //initializeSettings();
-//    Board_initGeneral();
-    //ADC_init();
     initSettings();
     GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN0);
     GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN0);
+
 
     commandPacket packet;
     commandPacket packet_previous;
     packet_previous.type = (uint8_t)UART_TYPE_COMMAND;
     packet_previous.command = (uint8_t)UART_COMMAND_NOP;
+    packet_previous.typeCommand = (uint8_t)UART_COMMAND_NOP;
     packet_previous.length = 0;
     // Not setting data to 0 here to save instructions but also because any data that
     // comes with a packet of data length 0 is invalid by definition
-
+    while(1){
+        UART_transmitData(UART_BASE, 0x64);
+        UART_transmitData(UART_BASE, 1);  //len = 1
+        UART_transmitData(UART_BASE, 1);
+    }
     bool lastAction_Completed = true;
 
     //empty -- initialize to beginning.
@@ -75,7 +77,7 @@ int main(void) {
         if ((UART_RingBuffer.end != UART_RingBuffer.start) && lastAction_Completed){
             lastAction_Completed = false;
             parse_UART_RingBuffer(&packet);
-            switch (packet.type){
+            switch (packet.command){
             //Control commands
             case UART_COMMAND_NOP:
                 // no operation
@@ -123,9 +125,10 @@ int main(void) {
                     //send the packet
                     send_packet(&packet);
                     GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN0);
-                } //else {
-//                    moveVSlot_HAB();
-//                }
+                } else {
+                    moveVSlot_HAB();
+                    send_packet(&packet);
+                }
                 break;
 
             case UART_COMMAND_MV_TABLE_CEN:
@@ -138,9 +141,9 @@ int main(void) {
                     send_packet(&packet);
                     GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN0);
 
-                } //else {
-//                //    moveVSlot_CEN();
-//                }
+                } else {
+                    moveVSlot_CEN();
+                }
                 break;
 
             case UART_COMMAND_MV_TABLE_SPC:
@@ -225,15 +228,24 @@ int main(void) {
             case UART_COMMAND_DATA_TABLE_FORCE_SENSE:
             {
                 uint16_t forceValue;
-                packet.length = 2;
+                packet.length = 1;
                 forceValue = get_tableForceSense();
+                //ADC is configured in 8-bit mode to allow the data to be stuffed in one char
+                //We do not have the resolution in the sensor to take advantage of a 14-bit value
+                // and our needs don't require more than 8-bit resolution
+                packet.data[0] = forceValue;
                 //note how these are packed out of order to ensure high-bits are transmitted first.
                 // This is to allow them to be shifted into place upon reception.
-                packet.data[1] = (uint8_t)(forceValue & 0xFF);
-                forceValue = forceValue >> 8;
-                packet.data[0] = (uint8_t)(forceValue & 0xFF);
+
+//                packet.data[1] = (uint8_t)(forceValue & 0xFF);
+//                forceValue = forceValue >> 8;
+//                packet.data[0] = (uint8_t)(forceValue & 0xFF);
+                send_packet(&packet);
                 break;
             }
+            case UART_COMMAND_DATA_TABLE_POSITION:
+                packet.length = 1;
+                packet.data[0] = tablePosition;
 
             case UART_COMMAND_DATA_HAB_HINGE_HE_SENSE:
                 packet.length = 1;
@@ -248,7 +260,22 @@ int main(void) {
                 break;
 
             case UART_COMMAND_DATA_PRESSURE:
-                packet.length = 1;
+                packet.length = 0;
+                packet.data[0] = 0; //rand();
+                send_packet(&packet);
+                break;
+
+
+            //Since we don't actually have a pressure sensor, we send the packet back
+            // and let the R.Pi generate the data
+            case UART_COMMAND_DEPRESSUREIZE:
+                packet.length = 0;
+                packet.data[0] = 0; //rand();
+                send_packet(&packet);
+                break;
+
+            case UART_COMMAND_PRESSUREIZE:
+                packet.length = 0;
                 packet.data[0] = 0; //rand();
                 send_packet(&packet);
                 break;
@@ -465,7 +492,7 @@ int main(void) {
 /* EUSCI A0 UART ISR - Fetches char from UART and stores in UART_RingBuffer for later */
 void EUSCIA0_IRQHandler(void){
     //fetch status register for interrupt data
-    uint32_t status = MAP_UART_getEnabledInterruptStatus(UART_BASE);
+    uint32_t status = UART_getEnabledInterruptStatus(UART_BASE);
 
     //clear interrupt flag
     UART_clearInterruptFlag(UART_BASE, status);
@@ -475,44 +502,97 @@ void EUSCIA0_IRQHandler(void){
     {
         //UART_transmitData(UART_BASE, UART_receiveData(EUSCI_A0_BASE));
         //GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN0);
-        char buffer_char = MAP_UART_receiveData(UART_BASE);
+        uint8_t buffer_char = UART_receiveData(UART_BASE);
 #if DEBUG_LEVEL > 0
-        UART_transmitData(UART_BASE, buffer_char);
+        //UART_transmitData(UART_BASE, buffer_char);
 #endif
+        //if ((buffer_char != '\r') && (buffer_char != '\t') && (buffer_char != ' ') && (buffer_char != '\n')){
+        if ((buffer_char != ('\r' && '\t' && ' ' && '\n'))){
+            switch(buffer_char){
+            case 0x93:
+            case 'h':
+                moveVSlot_HAB();
+                UART_transmitData(UART_BASE, 0x63);
+                UART_transmitData(UART_BASE, 1);  //len = 1
+                UART_transmitData(UART_BASE, tablePosition);
+                break;
+            case 0x94:
+            case 'c':
+                moveVSlot_CEN();
+                UART_transmitData(UART_BASE, 0x63);
+                UART_transmitData(UART_BASE, 1);  //len = 1
+                UART_transmitData(UART_BASE, tablePosition);
+                break;
+            case 0x95:
+            case 's':
+                moveVSlot_SPC();
+                UART_transmitData(UART_BASE, 0x63);
+                UART_transmitData(UART_BASE, 1);  //len = 1
+                UART_transmitData(UART_BASE, tablePosition);
+                break;
+            case 'a':
+                 open_HABDoor();
+                //open_SPCDoor();
+                break;
+            case 'q':
+                clampExperiment();
+                UART_transmitData(UART_BASE, 0x61);
+                UART_transmitData(UART_BASE, 1);  //len = 1
+                UART_transmitData(UART_BASE, 1);
+                break;
+            default:
+                break;
+            }
+        }
 
         //Clean out spaces and formatting for the buffer
-        if (buffer_char != ('\r' || '\t' || ' ')){
-            //HALT command check. In interrupt to address before a holding action completes
-            if (buffer_char == UART_COMMAND_HALT || buffer_char == 'h')
-                HALT();
-
-            if (buffer_char == '1')
-                moveVSlot_HAB();
-            if (buffer_char == '2')
-                moveVSlot_CEN();
-            if (buffer_char == '3')
-                moveVSlot_SPC();
-            //Loop around if at end of buffer
-            if (UART_RingBuffer.end == BUFFER_SIZE){
-                UART_RingBuffer.end = 0;
-            }
-            //Check if the ring buffer is full
-            if (UART_RingBuffer.end == UART_RingBuffer.start){
-#if DEBUG_LEVEL > 0
-                //Send debug flag over UART
-                UART_transmitData(UART_BASE, (char)UART_DEBUG_FLAG);
-
-                //Send string message
-                // REQUIRED: terminate with \n newline. This is the 'end of message' key to look for
-                printf(UART_BASE, "Ring buffer has overrun tail at: %d\n", (unsigned char)UART_RingBuffer.end);
-#endif
-            }
-            //Append data to ring buffer
-            UART_RingBuffer.data[UART_RingBuffer.end] = buffer_char;
-            //increment for the next ring buffer pass
-            UART_RingBuffer.end++;
-        }
+//        if (buffer_char != ('\r' || '\t' || ' ')){
+//            //HALT command check. In interrupt to address before a holding action completes
+//            if (buffer_char == UART_COMMAND_HALT)// || buffer_char == 'h')
+//                HALT();
+//
+//            if (buffer_char == '0x93')
+//                moveVSlot_HAB();
+////            if (buffer_char == '2')
+////                moveVSlot_CEN();
+////            if (buffer_char == '3')
+////                moveVSlot_SPC();
+//            //Loop around if at end of buffer
+//            if (UART_RingBuffer.end == BUFFER_SIZE){
+//                UART_RingBuffer.end = 0;
+//            }
+//#if DEBUG_LEVEL > 8
+//            //Check if the ring buffer is full
+//            if (UART_RingBuffer.end == UART_RingBuffer.start){
+//// some temp value to avoid compile
+//                //Send debug flag over UART
+//                UART_transmitData(UART_BASE, (char)UART_DEBUG_FLAG);
+//
+//                //Send string message
+//                // REQUIRED: terminate with \n newline. This is the 'end of message' key to look for
+//                printf(UART_BASE, "Ring buffer has overrun tail at: %d\n", (unsigned char)UART_RingBuffer.end);
+//            }
+//#endif
+//            //Append data to ring buffer
+//            UART_RingBuffer.data[UART_RingBuffer.end] = buffer_char;
+//            //increment for the next ring buffer pass
+//            UART_RingBuffer.end++;
+//        }
     }
+}
+
+void ADC14_IRQHandler(void)
+{
+    uint64_t status;
+
+    status = ADC14_getEnabledInterruptStatus();
+    ADC14_clearInterruptFlag(status);
+
+    if(status & ADC_INT0)
+    {
+        adcResult = ADC14_getResult(ADC_MEM0);
+    }
+
 }
 
 void HALT(){

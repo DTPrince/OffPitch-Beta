@@ -22,6 +22,8 @@ void parse_UART_RingBuffer(commandPacket *packet){
     // Grab command
     packet->command = UART_RingBuffer.data[UART_RingBuffer.start] & UART_COMMAND;
 
+    packet->typeCommand = UART_RingBuffer.data[UART_RingBuffer.start];
+
     // Check if the next element is the end of the ring.
     // If so, set start "pointer" to initial position
     if (UART_RingBuffer.start + 1 == BUFFER_SIZE){
@@ -83,8 +85,8 @@ void parse_UART_RingBuffer(commandPacket *packet){
 }
 
 void send_packet(commandPacket * packet){
-    MAP_UART_transmitData(UART_BASE, packet->type);
-    MAP_UART_transmitData(UART_BASE, packet->command);
+    MAP_UART_transmitData(UART_BASE, packet->type | packet->command);
+    //MAP_UART_transmitData(UART_BASE, packet->command);
     MAP_UART_transmitData(UART_BASE, packet->length);
     uint8_t iter = 0;
     for (iter = 0; iter < packet->length; iter++)

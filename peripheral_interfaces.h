@@ -4,7 +4,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+volatile uint16_t adcResult;
+
 void initSettings(void);
+
+void SysTick_Handler(void);
+
+void delay(uint32_t delay_ms);
 
 uint8_t enable_stepper(int port, int pin);
 

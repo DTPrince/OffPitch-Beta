@@ -12,6 +12,7 @@
 /* Standard Includes */
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h> // needed for memset
 
 /* Project includes */
 #include "defines.h"
@@ -23,7 +24,7 @@ Timer_A_PWMConfig pwmConfigA01 =
 {
         TIMER_A_CLOCKSOURCE_SMCLK,
         TIMER_A_CLOCKSOURCE_DIVIDER_64,
-        400,    // 400 = 470.28Hz
+        PWM_COUNTER_VSLOT_TOP,    // 400 = 470.28Hz
         TIMER_A_CAPTURECOMPARE_REGISTER_1,
         TIMER_A_OUTPUTMODE_RESET_SET,
         0       // 200
@@ -34,7 +35,7 @@ Timer_A_PWMConfig pwmConfigA03 =
 {
         TIMER_A_CLOCKSOURCE_SMCLK,
         TIMER_A_CLOCKSOURCE_DIVIDER_64,
-        400,    // 400 = 470.28Hz
+        PWM_COUNTER_VSLOT_BOT,    // 400 = 470.28Hz
         TIMER_A_CAPTURECOMPARE_REGISTER_3,
         TIMER_A_OUTPUTMODE_RESET_SET,
         0       // 200
@@ -45,12 +46,13 @@ Timer_A_PWMConfig pwmConfigA21 =
 {
         TIMER_A_CLOCKSOURCE_SMCLK,
         TIMER_A_CLOCKSOURCE_DIVIDER_64,
-        550,    // 40 = ~1.5Khz. 120 = 529Hz
+        PWM_COUNTER_EXP,    // 40 = ~1.5Khz. 120 = 529Hz
         TIMER_A_CAPTURECOMPARE_REGISTER_1,
         TIMER_A_OUTPUTMODE_RESET_SET,
         0       // 275
 };
 /* UART Config */
+//9600 BAUD
 const eUSCI_UART_Config uartConfig =
 {
         EUSCI_A_UART_CLOCKSOURCE_SMCLK,          // SMCLK Clock Source
@@ -63,6 +65,9 @@ const eUSCI_UART_Config uartConfig =
         EUSCI_A_UART_MODE,                       // UART mode
         EUSCI_A_UART_OVERSAMPLING_BAUDRATE_GENERATION //EUSCI_A_UART_LOW_FREQUENCY_BAUDRATE_GENERATION // Oversampling
 };
+
+// global
+volatile uint32_t Tick;
 
 void initSettings(){
     /* Halting the watchdog */
@@ -130,7 +135,33 @@ void initSettings(){
     GPIO_setAsOutputPin(SWITCH_DOOR_SPC);
     GPIO_setOutputLowOnPin(SWITCH_DOOR_SPC);
 
+    /* ADC Setup */
+    /* Zero-filling buffer */
 
+    //![Simple ADC14 Configure]
+    /* Initializing ADC (MCLK/1/1) */
+    ADC14_enableModule();
+    ADC14_initModule(ADC_CLOCKSOURCE_MCLK, ADC_PREDIVIDER_1, ADC_DIVIDER_1,
+            0);
+
+    /* Configuring ADC Memory (ADC_MEM0 A0/A1) in repeat mode
+     * with use of external references */
+    ADC14_configureSingleSampleMode(ADC_MEM0, true);
+    ADC14_configureConversionMemory(ADC_MEM0, ADC_VREFPOS_EXTPOS_VREFNEG_EXTNEG,
+            ADC_INPUT_A0, false);
+
+    /* Setting up GPIO pins as analog inputs (and references) */
+    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P5,
+            GPIO_PIN7 | GPIO_PIN6 | GPIO_PIN5 | GPIO_PIN4, GPIO_TERTIARY_MODULE_FUNCTION);
+
+    /* Enabling sample timer in auto iteration mode and interrupts*/
+    ADC14_enableSampleTimer(ADC_AUTOMATIC_ITERATION);
+    //ADC14_enableInterrupt(ADC_INT0);
+
+    /* Triggering the start of the sample */
+    ADC14_enableConversion();
+    ADC14_toggleConversionTrigger();
+    //![Simple ADC14 Configure]
 
     /* PWM Setup */
     //P2.6 as TA0.3 PWM output (shares freq. with PWM_VSLOT_BOT)
@@ -196,9 +227,27 @@ void initSettings(){
     GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN2);
     GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN2);
 
+    SysTick_enableModule();
+    SysTick_setPeriod(1500000); //Depends on your clock and tick requirements
+    SysTick_enableInterrupt();
+
+    /* Enabling MASTER interrupts */
+    Interrupt_enableMaster();
+
 //    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P4, GPIO_PIN2, GPIO_PRIMARY_MODULE_FUNCTION);
 //    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P4, GPIO_PIN4, GPIO_PRIMARY_MODULE_FUNCTION);
 
+}
+
+void SysTick_Handler(void){
+    Tick++;
+}
+
+// assumes 1 ms tick.
+void delay(uint32_t delay_ms){
+    uint32_t start = Tick;
+
+    while (Tick - start < delay_ms);
 }
 
 uint8_t enable_stepper(int port, int pin){
@@ -220,13 +269,15 @@ uint8_t disable_PWM(int port, int pin){
         //reconfigure PWM
         Timer_A_generatePWM(TIMER_A0_BASE, &pwmConfigA03);  //vslot bot
 
-    } else if((port ==  PWM_VSLOT_BOT_PORT) && (pin == PWM_VSLOT_BOT_PIN)) {
+    }
+    if((port ==  PWM_VSLOT_BOT_PORT) && (pin == PWM_VSLOT_BOT_PIN)) {
         //change duty-cycle to 0, effectively disabling the PWM signal
         pwmConfigA01.dutyCycle = 0;
         //reconfigure PWM
         Timer_A_generatePWM(TIMER_A0_BASE, &pwmConfigA01);  //vslot top
 
-    } else if((port == PWM_EXP_PORT) && (pin == PWM_EXP_PIN)) {
+    }
+    if((port == PWM_EXP_PORT) && (pin == PWM_EXP_PIN)) {
         //change duty-cycle to 0, effectively disabling the PWM signal
         pwmConfigA21.dutyCycle = 0;
         //reconfigure PWM
@@ -239,24 +290,26 @@ uint8_t disable_PWM(int port, int pin){
 uint8_t enable_PWM(int port, int pin){
     if((port == PWM_VSLOT_TOP_PORT) && (pin == PWM_VSLOT_TOP_PIN)){
         //change duty-cycle to 200 for a 50% duty-cycle
-        pwmConfigA03.dutyCycle = 200;
+        pwmConfigA03.dutyCycle = PWM_COUNTER_VSLOT_TOP/2;
+
         //reconfigure PWM
         Timer_A_generatePWM(TIMER_A0_BASE, &pwmConfigA03);  //vslot bot
 
-    } else if((port ==  PWM_VSLOT_BOT_PORT) && (pin == PWM_VSLOT_BOT_PIN)) {
+    }
+    if((port ==  PWM_VSLOT_BOT_PORT) && (pin == PWM_VSLOT_BOT_PIN)) {
         //change duty-cycle to 200 for a 50% duty-cycle
-        pwmConfigA01.dutyCycle = 200;
+        pwmConfigA01.dutyCycle = PWM_COUNTER_VSLOT_BOT/2;
         //reconfigure PWM
         Timer_A_generatePWM(TIMER_A0_BASE, &pwmConfigA01);  //vslot top
 
-    } else if((port == PWM_EXP_PORT) && (pin == PWM_EXP_PIN)) {
+    }
+    if((port == PWM_EXP_PORT) && (pin == PWM_EXP_PIN)) {
         //change duty-cycle to 275 for a 50% duty-cycle
-        pwmConfigA21.dutyCycle = 275;
+        pwmConfigA21.dutyCycle = PWM_COUNTER_EXP/2;//275;
         //reconfigure PWM
         Timer_A_generatePWM(TIMER_A2_BASE, &pwmConfigA21);  //table clamp
-
     }
-    return 0;
+     return 0;
 }
 
 uint8_t set_stepperDirection(int port, int pin, bool direction){
@@ -269,8 +322,7 @@ uint8_t set_stepperDirection(int port, int pin, bool direction){
 }
 
 uint8_t set_stepperSpeed(int port, int pin, int speed){
-    //this will have to modify the timer counter values...
-    //Probably have an input of the timer struct as well...
+    //modify timer struct duty cycle here
     return 0;
 }
 
@@ -279,7 +331,8 @@ uint8_t get_DIOPinState(int port, int pin){
 }
 
 uint16_t get_ADCValue(int stepper_port, int pin){
-    return 0;
+//    adcResult = ADC14_getResult(ADC_MEM0);
+    return adcResult;
 }
 
 

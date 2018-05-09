@@ -109,10 +109,10 @@ uint8_t moveVSlot_SPC() {
         enable_stepper(VSLOT_STEPPER_BOT_EN);
         set_stepperDirection(VSLOT_STEPPER_BOT_DIR, (bool)STEPPER_BOT_DIR_SPC);
         enable_PWM(PWM_VSLOT_BOT);
-        while (get_DIOPinState(HALL_SENSE_VSLOT_BOT) == GPIO_INPUT_PIN_LOW) {
+        while (GPIO_getInputPinValue(HALL_SENSE_VSLOT_BOT) == GPIO_INPUT_PIN_LOW) {
             //nada
         }
-        while (get_DIOPinState(HALL_SENSE_VSLOT_BOT) == GPIO_INPUT_PIN_HIGH) {
+        while (GPIO_getInputPinValue(HALL_SENSE_VSLOT_BOT) == GPIO_INPUT_PIN_HIGH) {
             //nada
         }
         //disable bottom movement
@@ -127,10 +127,10 @@ uint8_t moveVSlot_SPC() {
         //turn on PWM
         enable_PWM(PWM_VSLOT_TOP);
         //wait for the hall-effect detection
-        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_LOW) {
+        while (GPIO_getInputPinValue(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_LOW) {
             //nada
         }
-        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_HIGH) {
+        while (GPIO_getInputPinValue(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_HIGH) {
             //nada
         }
         //job done, disable stepper.
@@ -158,10 +158,10 @@ uint8_t moveVSlot_CEN() {
         enable_stepper(VSLOT_STEPPER_BOT_EN);
         enable_PWM(PWM_VSLOT_TOP);
         //poll for the hall-effect sensor
-        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_LOW) {
+        while (GPIO_getInputPinValue(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_LOW) {
             //nada
         }
-        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_HIGH) {
+        while (GPIO_getInputPinValue(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_HIGH) {
             //nada
         }
         //disable movement
@@ -183,10 +183,10 @@ uint8_t moveVSlot_CEN() {
 
         enable_PWM(PWM_VSLOT_TOP);
         //poll for the hall-effect sensor
-        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_LOW) {
+        while (GPIO_getInputPinValue(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_LOW) {
                     //wait
         }
-        while (get_DIOPinState(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_HIGH) {
+        while (GPIO_getInputPinValue(HALL_SENSE_VSLOT_TOP) == GPIO_INPUT_PIN_HIGH) {
             //wait
         }
         //now that the table top has moved center, move the gantry plate to the HAB-side as is expected of the rest of the program
@@ -198,10 +198,10 @@ uint8_t moveVSlot_CEN() {
         set_stepperDirection(VSLOT_STEPPER_BOT_DIR, (bool)STEPPER_BOT_DIR_HAB);
         //enable bottom stepper PWM for movement
         enable_PWM(PWM_VSLOT_BOT);
-        while (get_DIOPinState(HALL_SENSE_VSLOT_BOT) == GPIO_INPUT_PIN_LOW) {
+        while (GPIO_getInputPinValue(HALL_SENSE_VSLOT_BOT) == GPIO_INPUT_PIN_LOW) {
             //nada
         }
-        while (get_DIOPinState(HALL_SENSE_VSLOT_BOT) == GPIO_INPUT_PIN_HIGH) {
+        while (GPIO_getInputPinValue(HALL_SENSE_VSLOT_BOT) == GPIO_INPUT_PIN_HIGH) {
             //nada
         }
         disable_stepper(VSLOT_STEPPER_BOT_EN);
@@ -215,11 +215,20 @@ uint8_t moveVSlot_CEN() {
 }
 
 uint8_t VSLOT_findCenter(){
+
     return 0;
 }
 
 uint8_t clampExperiment() {
-    //if (0)
+    // if (GPIO_getInputPinValue(CAP_SENSE_TABLE_ONE)
+    enable_stepper(EXP_STEPPER_EN);
+    set_stepperDirection(EXP_STEPPER_DIR, (bool)STEPPER_EXP_DIR_CLOSE);
+    enable_PWM(PWM_EXP);
+    //while(adcResult > 0x00A0);
+    while(GPIO_getInputPinValue(CAP_SENSE_MATE) == GPIO_INPUT_PIN_LOW);
+    disable_PWM(PWM_EXP);
+    disable_stepper(EXP_STEPPER_EN);
+
     return 0;
 }
 
@@ -229,30 +238,44 @@ uint8_t releaseExperiment() {
 }
 
 uint8_t open_HABDoor(){
-
+    GPIO_setOutputHighOnPin(SWITCH_DOOR_HAB);
+    //delay(0);
+    int time_waster_that_shouldnt_exist = 0;
+    while (time_waster_that_shouldnt_exist < 900000000){
+        time_waster_that_shouldnt_exist++;
+    }
+    GPIO_setOutputLowOnPin(SWITCH_DOOR_HAB);
     return 0;
 }
 
 uint8_t open_SPCDoor(){
-
+    GPIO_setOutputHighOnPin(SWITCH_DOOR_SPC);
+    int time_waster_that_shouldnt_exist;
+    for (time_waster_that_shouldnt_exist = 0; time_waster_that_shouldnt_exist < 500000000; time_waster_that_shouldnt_exist++){
+    }
+    GPIO_setOutputLowOnPin(SWITCH_DOOR_SPC);
     return 0;
 }
 
 uint8_t close_HABDoor(){
-
+    GPIO_setOutputHighOnPin(SWITCH_DOOR_SPC);
+    delay(10);
+    GPIO_setOutputLowOnPin(SWITCH_DOOR_SPC);
     return 0;
 }
 
 uint8_t close_SPCDoor(){
-
+    GPIO_setOutputHighOnPin(SWITCH_DOOR_SPC);
+    delay(10);
+    GPIO_setOutputLowOnPin(SWITCH_DOOR_SPC);
     return 0;
 }
 
 uint8_t get_tableCapSense(){
-    uint8_t cap_One;
-    uint8_t cap_Two;
-    cap_One = get_DIOPinState(CAP_SENSE_TABLE_ONE);
-    cap_Two = get_DIOPinState(CAP_SENSE_TABLE_TWO);
+    uint16_t cap_One;
+    uint16_t cap_Two;
+    cap_One = GPIO_getInputPinValue(CAP_SENSE_TABLE_ONE);
+    cap_Two = GPIO_getInputPinValue(CAP_SENSE_TABLE_TWO);
     if ((cap_One > 0) && (cap_Two > 0))
         return TABLE_CAP_SENSE_BOTH;
     else if (cap_One > 0)
@@ -264,7 +287,7 @@ uint8_t get_tableCapSense(){
 }
 
 bool get_plateCapSense(){
-    return get_DIOPinState(CAP_SENSE_MATE) != 0;
+    return GPIO_getInputPinValue(CAP_SENSE_MATE) != 0;
 }
 
 uint16_t get_tableForceSense(){
@@ -273,27 +296,27 @@ uint16_t get_tableForceSense(){
 }
 
 bool get_VSlot_top_HEState(){
-    return get_DIOPinState(HALL_SENSE_VSLOT_TOP) != 0;
+    return GPIO_getInputPinValue(HALL_SENSE_VSLOT_TOP) != 0;
 }
 
 bool get_VSlot_bot_HEState(){
-    return get_DIOPinState(HALL_SENSE_VSLOT_BOT) != 0;
+    return GPIO_getInputPinValue(HALL_SENSE_VSLOT_BOT) != 0;
 }
 
 bool get_HABDoor_HEState(){
-    return get_DIOPinState(HALL_SENSE_DOOR_HAB) != 0;
+    return GPIO_getInputPinValue(HALL_SENSE_DOOR_HAB) != 0;
 }
 
 bool get_SPCDoor_HEState(){
-    return get_DIOPinState(HALL_SENSE_DOOR_SPC) != 0;
+    return GPIO_getInputPinValue(HALL_SENSE_DOOR_SPC) != 0;
 }
 
 bool get_HABHinge_HEState(){
-    return get_DIOPinState(HALL_SENSE_HINGE_HAB) != 0;
+    return GPIO_getInputPinValue(HALL_SENSE_HINGE_HAB) != 0;
 }
 
 bool get_SPCHinge_HEState(){
-    return get_DIOPinState(HALL_SENSE_HINGE_SPC) != 0;
+    return GPIO_getInputPinValue(HALL_SENSE_HINGE_SPC) != 0;
 }
 
 int get_Temperature(){
